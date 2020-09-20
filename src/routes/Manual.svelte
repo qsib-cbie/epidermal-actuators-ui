@@ -87,6 +87,11 @@ function handleClickActive(idx) {
     }
 }
 
+// MARK: Speciy Timer Config
+
+$: rangeValue = 50;
+$: console.log(rangeValue);
+
 </script>
 
 <main>
@@ -146,6 +151,9 @@ function handleClickActive(idx) {
             </ul>
 
             <Route path="specify">
+
+                <label for="rangevalue">Range Value</label> <input type="range" bind:value={rangeValue} min={1} max={100}/>
+
                 <p>
                 I did something cool today. Lorem ipsum dolor sit amet, consectetur 
                 adipisicing elit. Quisquam rerum asperiores, ex animi sunt ipsum. Voluptas 
