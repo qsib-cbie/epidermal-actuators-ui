@@ -24,48 +24,54 @@ const hitEndpoint = async (endpoint, route, body) => {
 }
 
 $: connectionAttempt = (async () => {
-    antennaButton.disabled = false;
-    antennaButton.message = "Configure";
     return await hitEndpoint(endpoint, nopRoute, success);
 })()
 
 // MARK: Antenna Configuration
 
 $: rfPower = 4;
-$: antennaButton = { disabled: false, message: "Configure" };
+$: activeRfPower = 0;
+$: configuring = false;
+$: antennaButtonDisabled = configuring || rfPower == activeRfPower;
+$: antennaButtonMessage = "Configure";
 
 function handleClickRfPower() {
     (async () => {
-        antennaButton.disabled = true;
-        antennaButton.message = "Configuring ...";
+        configuring = true;
+        antennaButtonMessage = "Configuring ...";
         return await hitEndpoint(endpoint, nopRoute, success);
     })().then(() => {
-        antennaButton.disabled = true;
-        antennaButton.message = "Configured";
+        configuring = false;
+        activeRfPower = rfPower;
+        antennaButtonMessage = "Configured";
     }).catch(error => {
         message = error;
-        antennaButton.disabled = false;
-        antennaButton.message = "Re-attempt Configure";
+        configuring = false;
+        antennaButtonMessage = "Re-attempt Configure";
     });
 }
 
 // MARK: Addressable Devices
 
 $: newDevice = "Device0";
+$: searching = false;
+$: deviceButtonDisabled = searching || devices.includes(newDevice);
 $: deviceButtonMessage = "Find";
-$: deviceButtonDisabled = devices.includes(newDevice);
 $: activeDevice = 0;
 $: devices = [ ];
 
 function handleClickDevice() {
     (async () => {
+        searching = true;
         deviceButtonMessage = "Searching ...";
         return await hitEndpoint(endpoint, nopRoute, success);
     })().then(() => {
+        searching = false;
         devices.push(newDevice);
         devices = devices;
         deviceButtonMessage = "Find";
     }).catch(error => {
+        searching = false;
         message = error;
         deviceButtonMessage = "Re-attempt Search";
     });
@@ -90,7 +96,6 @@ function handleClickActive(idx) {
 // MARK: Speciy Timer Config
 
 $: rangeValue = 50;
-$: console.log(rangeValue);
 
 </script>
 
@@ -121,7 +126,7 @@ $: console.log(rangeValue);
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
-            <button on:click={handleClickRfPower} disabled={antennaButton.disabled}> {antennaButton.message} </button>
+            <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
             <h2>Addressable Devices</h2>
 
@@ -152,7 +157,7 @@ $: console.log(rangeValue);
 
             <Route path="specify">
 
-                <label for="rangevalue">Range Value</label> <input type="range" bind:value={rangeValue} min={1} max={100}/>
+                <label for="rangevalue">Range Value: {rangeValue} </label> <input type="range" bind:value={rangeValue} min={1} max={100}/>
 
                 <p>
                 I did something cool today. Lorem ipsum dolor sit amet, consectetur 
