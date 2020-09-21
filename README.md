@@ -1,4 +1,13 @@
-*Looking for a shareable component template? Go here --> [sveltejs/component-template](https://github.com/sveltejs/component-template)*
+# Epidermal Actuators UI in Svelte
+Running a local server in SPA
+```
+npm install
+npm run dev
+```
+
+![manual_page](img/manual_page.png)
+
+
 
 ---
 
