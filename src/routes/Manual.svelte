@@ -112,12 +112,12 @@ $: activeHexagon = -1;
 $: mouseDown = false;
 $: pendingTimeout = false;
 
-$: block0_31 = [0,0,0,0];
-$: block32_63 = [0,0,0,0];
-$: block64_95 = [0,0,0,0];
-$: block96_127 = [0,0,0,0];
-$: hf_block = [0,0,0,0];
-$: lf_block = [0,0,0,0];
+let block0_31 = [0,0,0,0];
+let block32_63 = [0,0,0,0];
+let block64_95 = [0,0,0,0];
+let block96_127 = [0,0,0,0];
+let hf_block = [0,0,0,0];
+let lf_block = [0,0,0,0];
 
 $: act_command = `{ "ActuatorsCommand": {
     "fabric_name": "${devices[activeDevice]}",
@@ -284,7 +284,17 @@ function buildActuatorCommand(){
         block32_63 = [0,0,0,0];
         block64_95 = [0,0,0,0];
     } 
-	
+    let hfOn = hfPeriod * (hfDutyCycle/100);
+    hf_block[0] = hfOn & 0x000000ff;
+    hf_block[1] = (hfOn & 0x0000ff00) >> 8;
+    hf_block[2] = hfPeriod & 0x000000ff;
+    hf_block[3] = (hfPeriod & 0x0000ff00) >> 8;
+    let lfOn = lfPeriod * (lfDutyCycle/100);
+    lf_block[0] = lfOn & 0x000000ff;
+    lf_block[1] = (lfOn & 0x0000ff00) >> 8;
+    lf_block[2] = lfPeriod & 0x000000ff;
+    lf_block[3] = (lfPeriod & 0x0000ff00) >> 8;
+
 }
 
 
@@ -426,7 +436,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
             </Route>
         </div>
         <div class='col-50'>
-            <h2>Device Input {activeHexagon}</h2>
+            <h2>Device Input</h2>
 
             <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
                 width={`${viewBox.x}px`}
