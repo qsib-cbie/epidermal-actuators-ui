@@ -104,7 +104,12 @@ $: lfDutyCycle = 50;
 $: hfPeriod = 250;
 $: hfDutyCycle = 50;
 
-$: intensity = 100;
+$: intensity = 100; 
+
+$: hfOn = hfPeriod * (hfDutyCycle/100);
+$: hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
+$: lfOn = lfPeriod * (lfDutyCycle/100);
+$: lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
 
 // MARK: Device Input
 
@@ -119,6 +124,8 @@ let block96_127 = [0,0,0,0];
 let hf_block = [0,0,0,0];
 let lf_block = [0,0,0,0];
 
+
+//Leaving this reactive 
 $: act_command = `{ "ActuatorsCommand": {
     "fabric_name": "${devices[activeDevice]}",
     "op_mode_block": {"act_cnt32":2, "act_mode":0, "op_mode":2},
@@ -234,7 +241,7 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function buildActuatorCommand(){
+function buildCommandBlocks(){
     let actuator = activeHexagon;
     let shiftActuator; 
     let binActuator;
@@ -284,16 +291,7 @@ function buildActuatorCommand(){
         block32_63 = [0,0,0,0];
         block64_95 = [0,0,0,0];
     } 
-    let hfOn = hfPeriod * (hfDutyCycle/100);
-    hf_block[0] = hfOn & 0x000000ff;
-    hf_block[1] = (hfOn & 0x0000ff00) >> 8;
-    hf_block[2] = hfPeriod & 0x000000ff;
-    hf_block[3] = (hfPeriod & 0x0000ff00) >> 8;
-    let lfOn = lfPeriod * (lfDutyCycle/100);
-    lf_block[0] = lfOn & 0x000000ff;
-    lf_block[1] = (lfOn & 0x0000ff00) >> 8;
-    lf_block[2] = lfPeriod & 0x000000ff;
-    lf_block[3] = (lfPeriod & 0x0000ff00) >> 8;
+    
 
 }
 
@@ -322,7 +320,7 @@ function handleTouchMove(e) {
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
             activeHexagon = drawableHexagons[i].id;
-            buildActuatorCommand();
+            buildCommandBlocks();
             (async () => {
                return await hitEndpoint(endpoint, nopRoute, act_command);
             })().then(result => {
