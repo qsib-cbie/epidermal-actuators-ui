@@ -112,6 +112,29 @@ $: activeHexagon = -1;
 $: mouseDown = false;
 $: pendingTimeout = false;
 
+$: block0_31 = [0,0,0,0];
+$: block32_63 = [0,0,0,0];
+$: block64_95 = [0,0,0,0];
+$: block96_127 = [0,0,0,0];
+$: hf_block = [0,0,0,0];
+$: lf_block = [0,0,0,0];
+
+$: act_command = `{ "ActuatorsCommand": {
+    "fabric_name": "${devices[activeDevice]}",
+    "op_mode_block": {"act_cnt32":2, "act_mode":0, "op_mode":2},
+    "actuator_mode_blocks": {
+      "block0_31":{"b0": ${block0_31[0]}, "b1": ${block0_31[1]}, "b2": ${block0_31[2]}, "b3": ${block0_31[3]}},
+      "block32_63":{"b0": ${block32_63[0]}, "b1": ${block32_63[1]}, "b2": ${block32_63[2]}, "b3": ${block32_63[3]}},
+      "block64_95":{"b0": ${block64_95[0]}, "b1": ${block64_95[1]}, "b2": ${block64_95[2]}, "b3": ${block64_95[3]}},
+      "block96_127":{"b0": ${block96_127[0]}, "b1": ${block96_127[1]}, "b2": ${block96_127[2]}, "b3": ${block96_127[3]}}},
+    "timer_mode_blocks": {
+      "single_pulse_block":{"b0":0, "b1":0, "b2":0, "b3":0},
+      "hf_block":{"b0":${hf_block[0]}, "b1":${hf_block[1]}, "b2":${hf_block[2]}, "b3":${hf_block[3]}},
+      "lf_block":{"b0":${lf_block[0]}, "b1":${lf_block[1]}, "b2":${lf_block[2]}, "b3":${lf_block[3]}}
+    } } }`;
+
+
+
 const hexagons = [
   // Row 0
   { id: 0, row: 0, col: 1 },
@@ -211,6 +234,60 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
+function buildActuatorCommand(){
+    let actuator = activeHexagon;
+    let shiftActuator; 
+    let binActuator;
+    if (actuator <= 31) {
+        shiftActuator = Math.abs(1 << actuator); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0'); 
+        block0_31[0] = binActuator.slice(24,32);
+        block0_31[1] = binActuator.slice(16,24);
+        block0_31[2] = binActuator.slice(8,16);
+        block0_31[3] = binActuator.slice(0,8); //string representation of binary command 
+
+        block32_63 = [0,0,0,0];
+        block64_95 = [0,0,0,0];
+        block96_127 = [0,0,0,0];
+        // block0_31[3] = parseInt(binActuator.slice(0,8),2); //decimal representation of binary command
+    } else if (actuator >= 32 && actuator < 63){
+        shiftActuator = Math.abs(1 << (actuator - 32)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        block32_63[0] = binActuator.slice(24,32);
+        block32_63[1] = binActuator.slice(16,24);
+        block32_63[2] = binActuator.slice(8,16);
+        block32_63[3] = binActuator.slice(0,8);
+
+        block0_31 = [0,0,0,0];
+        block64_95 = [0,0,0,0];
+        block96_127 = [0,0,0,0];
+    } else if (actuator >= 64 && actuator < 95){
+        shiftActuator = Math.abs(1 << (actuator - 64)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        block64_95[0] = binActuator.slice(24,32);
+        block64_95[1] = binActuator.slice(16,24);
+        block64_95[2] = binActuator.slice(8,16);
+        block64_95[3] = binActuator.slice(0,8);
+
+        block0_31 = [0,0,0,0];
+        block32_63 = [0,0,0,0];
+        block96_127 = [0,0,0,0];
+    } else if (actuator >= 96 && actuator < 127){
+        shiftActuator = Math.abs(1 << (actuator - 96)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        block96_127[0] = binActuator.slice(24,32);
+        block96_127[1] = binActuator.slice(16,24);
+        block96_127[2] = binActuator.slice(8,16);
+        block96_127[3] = binActuator.slice(0,8);
+
+        block0_31 = [0,0,0,0];
+        block32_63 = [0,0,0,0];
+        block64_95 = [0,0,0,0];
+    } 
+	
+}
+
+
 function handleTouchStart(e) { 
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
@@ -235,8 +312,9 @@ function handleTouchMove(e) {
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
             activeHexagon = drawableHexagons[i].id;
+            buildActuatorCommand();
             (async () => {
-               return await hitEndpoint(endpoint, nopRoute, success);
+               return await hitEndpoint(endpoint, nopRoute, act_command);
             })().then(result => {
                 if(pendingTimeout) {
                     clearTimeout(pendingTimeout);
@@ -348,7 +426,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
             </Route>
         </div>
         <div class='col-50'>
-            <h2>Device Input</h2>
+            <h2>Device Input {activeHexagon}</h2>
 
             <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
                 width={`${viewBox.x}px`}
@@ -368,7 +446,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
                           class="activatable"
                           fill="none"
                           stroke={hexagon.color}
-                          strokeWidth="5px"
+                          stroke-width="5px"
                           strokeLinejoin="miter"
                           transform={`rotate(0 ${hexagon.x} ${hexagon.y}) translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                           points={hexagon.points} />
