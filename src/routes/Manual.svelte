@@ -1,7 +1,8 @@
 <script>
-import { Router, Link, Route } from "svelte-routing";
+import  { Router, Link, Route } from "svelte-routing";
 
 // MARK: Message
+export let test_ui = false;
 
 $: message = 'starting ...';
 // $: message = message.toUpperCase();
@@ -106,6 +107,7 @@ $: hfDutyCycle = 50;
 
 $: intensity = 100; 
 
+$: single_pulse_block = [0,0,0,0];
 $: hfOn = hfPeriod * (hfDutyCycle/100);
 $: hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
 $: lfOn = lfPeriod * (lfDutyCycle/100);
@@ -121,8 +123,6 @@ let block0_31 = [0,0,0,0];
 let block32_63 = [0,0,0,0];
 let block64_95 = [0,0,0,0];
 let block96_127 = [0,0,0,0];
-let hf_block = [0,0,0,0];
-let lf_block = [0,0,0,0];
 
 
 //Leaving this reactive 
@@ -135,7 +135,7 @@ $: act_command = `{ "ActuatorsCommand": {
       "block64_95":{"b0": ${block64_95[0]}, "b1": ${block64_95[1]}, "b2": ${block64_95[2]}, "b3": ${block64_95[3]}},
       "block96_127":{"b0": ${block96_127[0]}, "b1": ${block96_127[1]}, "b2": ${block96_127[2]}, "b3": ${block96_127[3]}}},
     "timer_mode_blocks": {
-      "single_pulse_block":{"b0":0, "b1":0, "b2":0, "b3":0},
+      "single_pulse_block":{"b0":${single_pulse_block[0]}, "b1":${single_pulse_block[1]}, "b2":${single_pulse_block[2]}, "b3":${single_pulse_block[3]}},
       "hf_block":{"b0":${hf_block[0]}, "b1":${hf_block[1]}, "b2":${hf_block[2]}, "b3":${hf_block[3]}},
       "lf_block":{"b0":${lf_block[0]}, "b1":${lf_block[1]}, "b2":${lf_block[2]}, "b3":${lf_block[3]}}
     } } }`;
@@ -241,8 +241,9 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function buildCommandBlocks(){
-    let actuator = activeHexagon;
+function buildCommandBlocks(active){
+    let actuator = active;
+    console.log(actuator);
     let shiftActuator; 
     let binActuator;
     if (actuator <= 31) {
@@ -320,7 +321,7 @@ function handleTouchMove(e) {
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
             activeHexagon = drawableHexagons[i].id;
-            buildCommandBlocks();
+            buildCommandBlocks(activeHexagon);
             (async () => {
                return await hitEndpoint(endpoint, nopRoute, act_command);
             })().then(result => {
@@ -462,6 +463,12 @@ function handleMouseUp(event) { handleTouchEnd(event); }
                       </g>
                 {/each}
             </svg>
+            {#if test_ui}
+                <p>Test: {block0_31}, {block32_63}, {block64_95}, {block96_127}</p>
+                {#each hexagons as actuator}
+                    <button on:click={() => buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
+                {/each}
+            {/if}
         </div>
   </div>
 
