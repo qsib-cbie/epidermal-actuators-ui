@@ -1,5 +1,5 @@
 <script>
-import  { Router, Link, Route } from "svelte-routing";
+import { Router, Link, Route } from "svelte-routing";
 
 // MARK: Message
 export let test_ui = false;
@@ -241,9 +241,8 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function buildCommandBlocks(active){
+function buildCommandBlocks(active) {
     let actuator = active;
-    console.log(actuator);
     let shiftActuator; 
     let binActuator;
     if (actuator <= 31) {
@@ -257,7 +256,6 @@ function buildCommandBlocks(active){
         block32_63 = [0,0,0,0];
         block64_95 = [0,0,0,0];
         block96_127 = [0,0,0,0];
-        // block0_31[3] = parseInt(binActuator.slice(0,8),2); //decimal representation of binary command
     } else if (actuator >= 32 && actuator < 63){
         shiftActuator = Math.abs(1 << (actuator - 32)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
