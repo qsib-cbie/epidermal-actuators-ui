@@ -241,57 +241,38 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function buildCommandBlocks(active) {
-    let actuator = active;
-    let shiftActuator; 
+function getBytesForActuator(actuator) {
+    /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
+    let shiftActuator;
     let binActuator;
+    const zero = '0';
     if (actuator <= 31) {
         shiftActuator = Math.abs(1 << actuator); 
         binActuator = shiftActuator.toString(2).padStart(32,'0'); 
-        block0_31[0] = binActuator.slice(24,32);
-        block0_31[1] = binActuator.slice(16,24);
-        block0_31[2] = binActuator.slice(8,16);
-        block0_31[3] = binActuator.slice(0,8); //string representation of binary command 
-
-        block32_63 = [0,0,0,0];
-        block64_95 = [0,0,0,0];
-        block96_127 = [0,0,0,0];
+        binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
     } else if (actuator >= 32 && actuator < 63){
         shiftActuator = Math.abs(1 << (actuator - 32)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
-        block32_63[0] = binActuator.slice(24,32);
-        block32_63[1] = binActuator.slice(16,24);
-        block32_63[2] = binActuator.slice(8,16);
-        block32_63[3] = binActuator.slice(0,8);
-
-        block0_31 = [0,0,0,0];
-        block64_95 = [0,0,0,0];
-        block96_127 = [0,0,0,0];
+        binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
     } else if (actuator >= 64 && actuator < 95){
         shiftActuator = Math.abs(1 << (actuator - 64)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
-        block64_95[0] = binActuator.slice(24,32);
-        block64_95[1] = binActuator.slice(16,24);
-        block64_95[2] = binActuator.slice(8,16);
-        block64_95[3] = binActuator.slice(0,8);
-
-        block0_31 = [0,0,0,0];
-        block32_63 = [0,0,0,0];
-        block96_127 = [0,0,0,0];
+        binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
     } else if (actuator >= 96 && actuator < 127){
         shiftActuator = Math.abs(1 << (actuator - 96)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
-        block96_127[0] = binActuator.slice(24,32);
-        block96_127[1] = binActuator.slice(16,24);
-        block96_127[2] = binActuator.slice(8,16);
-        block96_127[3] = binActuator.slice(0,8);
+        binActuator = binActuator + zero.repeat(96);
+    }
+    return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
+}
 
-        block0_31 = [0,0,0,0];
-        block32_63 = [0,0,0,0];
-        block64_95 = [0,0,0,0];
-    } 
+function buildCommandBlocks(active) {
+    const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
+    block0_31 = [b0_0, b0_1, b0_2, b0_3];
+    block32_63 = [b1_0, b1_1, b1_2, b1_3];
+    block64_95 = [b2_0, b2_1, b2_2, b2_3];
+    block96_127 = [b3_0, b3_1, b3_2, b3_3];
     
-
 }
 
 
