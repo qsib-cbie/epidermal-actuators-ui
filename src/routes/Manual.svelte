@@ -1,5 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
+import { bind } from "svelte/internal";
 
 // MARK: Message
 export let test_ui = false;
@@ -104,14 +105,27 @@ $: lfPeriod = 500;
 $: lfDutyCycle = 50;
 $: hfPeriod = 250;
 $: hfDutyCycle = 50;
+$: single_pulse_duration = 500;
 
-$: intensity = 100; 
 
 $: single_pulse_block = [0,0,0,0];
+
 $: hfOn = hfPeriod * (hfDutyCycle/100);
 $: hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
+
 $: lfOn = lfPeriod * (lfDutyCycle/100);
 $: lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
+
+function setTimingBlock(config) {
+    if (config == "infer") {
+        hfPeriod = 10;      
+        lfPeriod = 0xff;
+        lfDutyCycle = 100;
+    } else if (config == "hideLF"){
+        lfPeriod = 0xff;
+        lfDutyCycle = 100;           
+    }
+}
 
 // MARK: Device Input
 
@@ -250,15 +264,15 @@ function getBytesForActuator(actuator) {
         shiftActuator = Math.abs(1 << actuator); 
         binActuator = shiftActuator.toString(2).padStart(32,'0'); 
         binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-    } else if (actuator >= 32 && actuator < 63){
+    } else if (actuator >= 32 && actuator < 63) {
         shiftActuator = Math.abs(1 << (actuator - 32)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
         binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-    } else if (actuator >= 64 && actuator < 95){
+    } else if (actuator >= 64 && actuator < 95) {
         shiftActuator = Math.abs(1 << (actuator - 64)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
         binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-    } else if (actuator >= 96 && actuator < 127){
+    } else if (actuator >= 96 && actuator < 127) {
         shiftActuator = Math.abs(1 << (actuator - 96)); 
         binActuator = shiftActuator.toString(2).padStart(32,'0');
         binActuator = binActuator + zero.repeat(96);
@@ -272,7 +286,7 @@ function buildCommandBlocks(active) {
     block32_63 = [b1_0, b1_1, b1_2, b1_3];
     block64_95 = [b2_0, b2_1, b2_2, b2_3];
     block96_127 = [b3_0, b3_1, b3_2, b3_3];
-    
+
 }
 
 
@@ -394,23 +408,38 @@ function handleMouseUp(event) { handleTouchEnd(event); }
         </div><div class='col-25'>
             <h2>Timer Configuration</h2>
 
-            <Link to="specify">Specify Timer Config</Link>
+            <Link to="specify"><button>Specify Timer Config</button></Link>
             <br/>
-            <Link to="infer">Infer Timer Config</Link>
+            <Link to="infer"><button>Infer Timer Config</button></Link>
 
             <Route path="specify">
                 <h3>Manually Specify Timing</h3>
+                <div on:load="{setTimingBlock("hideLF")}"></div>
+                <Link to="showLF"><button>Specify Low Frequency</button></Link>
 
-                <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
-                <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
-
+                <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+                
                 <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
                 <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
             </Route>
             <Route path="infer">
+                <div on:load="{setTimingBlock("infer")}"></div>
                 <h3>Infer Specify Timing</h3>
 
-                <label for="intensity">Intensity: {intensity} %</label> <input type="range" bind:value={intensity} min={0} max={100}/>
+                <label for="intensity">Intensity: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
+            </Route>
+            <Route path="showLF">
+                <h3>Manually Specify Timing</h3>
+                <Link to="specify"><button>Infer Low Frequency</button></Link>
+
+                <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+                
+                <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
+                <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
+                
+                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
+                <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
+                    
             </Route>
         </div>
         <div class='col-50'>
