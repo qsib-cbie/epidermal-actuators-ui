@@ -149,7 +149,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
 </script>
 
 <div class='col-50'>
-    <h2>Device Input {activeHexagon}</h2>
+    <h2>Device Input</h2>
 
     <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width={`${viewBox.x}px`}

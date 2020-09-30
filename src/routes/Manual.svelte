@@ -187,7 +187,7 @@ function buildCommandBlocks(active) {
 
 }
 
-//Handles mouseEvents fomr hexgon component
+//Handles mouseEvents from hexgon component
 function handleActuatorClick(e) {
     buildCommandBlocks(e.detail.value);
     (async () => {
@@ -270,11 +270,11 @@ function handleActuatorClick(e) {
         </div><div class='col-25'>
             <h2>Timer Configuration</h2>
 
-            <Link to="specify"><button>Specify Timer Config</button></Link>
+            <Link to="/"><button>Specify Timer Config</button></Link>
             <br/>
             <Link to="infer"><button>Infer Timer Config</button></Link>
-
-            <Route path="specify">
+            
+            <Route path="/">
                 <h3>Manually Specify Timing</h3>
                 <div on:load="{setTimingBlock("hideLF")}"></div>
                 <Link to="showLF"><button>Specify Low Frequency</button></Link>
@@ -331,17 +331,6 @@ function handleActuatorClick(e) {
         padding: 1em;
     }
 
-    /* .col-50 {
-        width: 40%;
-        height: 100%;
-
-        display: inline-block;
-        vertical-align: top;
-
-        margin: 0px auto;
-        padding: 1em;
-    } */
-
     p.success {
         color: green;
         font-size: medium;
@@ -355,10 +344,6 @@ function handleActuatorClick(e) {
     li.device {
         margin: 1em;
     }
-
-    /* svg {
-        cursor: draggable;
-    } */
 
 </style>
 
