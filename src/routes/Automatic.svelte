@@ -41,8 +41,8 @@ export let test_ui = false;
 
 <style>
     .scroll-box{
-        width: 25%;
-        height: 750px;
+        width: 15%;
+        height: 500px;
 
         padding: 1em;
         margin: 10px;
@@ -58,7 +58,7 @@ export let test_ui = false;
 
     .option{
         width: 100%;
-        height: 300px;
+        height: 100px;
         /* margin: 5px; */
         margin-top: 10px;
         margin-bottom: 10px;
