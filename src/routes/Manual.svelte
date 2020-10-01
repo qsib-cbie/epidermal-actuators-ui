@@ -1,12 +1,13 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
+import { activeDevice, devices } from "../../stores/stores"
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
 
 // MARK: Message
 export let test_ui = false;
-// $: pendingTimeout = false;
+$: pendingTimeout = false;
 $: message = 'starting ...';
 let Com;
 
@@ -59,10 +60,6 @@ function handleClickRfPower() {
     });
 }
 
-// MARK: Addressable Devices
-
-$: activeDevice = 0;
-$: devices = [ ];
 
 
 // MARK: Speciy Timer Config
@@ -105,7 +102,7 @@ let block96_127 = [0,0,0,0];
 
 //Leaving this reactive 
 $: act_command = `{ "ActuatorsCommand": {
-    "fabric_name": "${devices[activeDevice]}",
+    "fabric_name": "${$devices[$activeDevice]}",
     "op_mode_block": {"act_cnt32":2, "act_mode":0, "op_mode":2},
     "actuator_mode_blocks": {
       "block0_31":{"b0": ${block0_31[0]}, "b1": ${block0_31[1]}, "b2": ${block0_31[2]}, "b3": ${block0_31[3]}},
@@ -200,7 +197,7 @@ function handleActuatorClick(e) {
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
-            <button on:click={handleClickRfPower(Com)} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
+            <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
             {#await configureAttempt }
                 <p>attempting configuration ...</p>
@@ -211,7 +208,7 @@ function handleActuatorClick(e) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-            <Devices bind:devices bind:activeDevice/>
+            <Devices />
 
         </div><div class='col-25'>
             <h2>Timer Configuration</h2>
@@ -250,7 +247,7 @@ function handleActuatorClick(e) {
                     
             </Route>
         </div>
-        <Hexagons on:click={handleActuatorClick} on:message="{e => buildCommandBlocks(e.detail.value, Com)}" bind:activeHexagon bind:test_ui/>
+        <Hexagons on:click={handleActuatorClick} on:message="{e => buildCommandBlocks(e.detail.value)}" bind:activeHexagon bind:test_ui/>
 
         {#if test_ui}
                 <p>Test: {block0_31}, {block32_63}, {block64_95}, {block96_127}</p>

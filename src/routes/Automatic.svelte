@@ -1,13 +1,19 @@
 <script>
-    import { Router, Link, Route } from 'svelte-routing';
-    import Hexagons from '../Utils/Hexagons.svelte';
+import { Router, Link, Route } from 'svelte-routing';
+import { activeDevice, devices } from "../../stores/stores"
 
-    export let test_ui = false;
-    let option_w, option_h;
+import Devices from '../Utils/Devices.svelte';
+import Hexagons from '../Utils/Hexagons.svelte';
+
+export let test_ui = false;
+
+
 </script>
 
 <Router>
     <h1>Automatic</h1>
+    <Devices />
+
     <div class='scroll-box'>
         <div class='option'>
             <!-- Option 1 is default -->

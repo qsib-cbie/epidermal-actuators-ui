@@ -1,5 +1,6 @@
 <script>
 import Communication from "./Communication.svelte";
+import { activeDevice, devices } from "../../stores/stores"
 
 let Com;
 let endpoint;
@@ -7,12 +8,10 @@ let nopRoute;
 let success;
 $: message = 'starting ...';
 
-export let activeDevice = 0;
-export let devices = [ ];
 
 $: newDevice = "Device0";
 $: searching = false;
-$: deviceButtonDisabled = searching || devices.includes(newDevice);
+$: deviceButtonDisabled = searching || $devices.includes(newDevice);
 $: deviceButtonMessage = "Find";
 
 
@@ -23,8 +22,7 @@ function handleClickDevice(child) {
         return await child.hitEndpoint(endpoint, nopRoute, success);
     })().then(() => {
         searching = false;
-        devices.push(newDevice);
-        devices = devices;
+        $devices = [...$devices, newDevice];
         deviceButtonMessage = "Find";
     }).catch(error => {
         console.log(error);
@@ -36,17 +34,16 @@ function handleClickDevice(child) {
 
 function handleClickRemove(idx) {
     return () => {
-        if(idx <= activeDevice && activeDevice != 0) {
-            activeDevice -= 1
+        if(idx <= $activeDevice && $activeDevice != 0) {
+            activeDevice.update(n => n - 1)
         }
-        devices.splice(idx, 1);
-        devices = devices;
+        $devices = $devices.filter(n => n !== $devices[idx]); 
     }
 }
 
 function handleClickActive(idx) {
     return () => {
-        activeDevice = idx;
+        activeDevice.set(idx);
     }
 }
 </script>
@@ -58,17 +55,17 @@ function handleClickActive(idx) {
 <label for="device">Device </label> <input bind:value={newDevice} />
 <button on:click={handleClickDevice(Com)} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
 
-{#if devices.length > 0 }
-    <p> Active Device: {devices[activeDevice]} </p>
+{#if $devices.length > 0 }
+    <p> Active Device: {$devices[$activeDevice]} </p>
 {:else}
     <p> No addressable device to activate </p>
 {/if}
 
 <ul>
-    {#each devices as device, idx}
+    {#each $devices as device, idx}
         <li class="device">{device}
             <button on:click={handleClickRemove(idx)}> Remove </button>
-            {#if activeDevice != idx}
+            {#if $activeDevice != idx}
                 <button on:click={handleClickActive(idx)}> Make Active </button>
             {/if}
         </li>
