@@ -1,15 +1,17 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
+import Communication from "../Utils/Communication.svelte";
+import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
 
 // MARK: Message
 export let test_ui = false;
-$: pendingTimeout = false;
+// $: pendingTimeout = false;
 $: message = 'starting ...';
-// $: message = message.toUpperCase();
+let Com;
 
-const nopRoute = '';
-const success = '{ "Success": { } }';
+let nopRoute = '';
+let success = '{ "Success": { } }';
 
 const hitEndpoint = async (endpoint, route, body) => {
     const response = await fetch(endpoint + route, { method: 'POST', body});
@@ -59,45 +61,9 @@ function handleClickRfPower() {
 
 // MARK: Addressable Devices
 
-$: newDevice = "Device0";
-$: searching = false;
-$: deviceButtonDisabled = searching || devices.includes(newDevice);
-$: deviceButtonMessage = "Find";
 $: activeDevice = 0;
 $: devices = [ ];
 
-function handleClickDevice() {
-    (async () => {
-        searching = true;
-        deviceButtonMessage = "Searching ...";
-        return await hitEndpoint(endpoint, nopRoute, success);
-    })().then(() => {
-        searching = false;
-        devices.push(newDevice);
-        devices = devices;
-        deviceButtonMessage = "Find";
-    }).catch(error => {
-        searching = false;
-        message = error;
-        deviceButtonMessage = "Re-attempt Search";
-    });
-}
-
-function handleClickRemove(idx) {
-    return () => {
-        if(idx <= activeDevice && activeDevice != 0) {
-            activeDevice -= 1
-        }
-        devices.splice(idx, 1);
-        devices = devices;
-    }
-}
-
-function handleClickActive(idx) {
-    return () => {
-        activeDevice = idx;
-    }
-}
 
 // MARK: Speciy Timer Config
 
@@ -208,7 +174,7 @@ function handleActuatorClick(e) {
 </script>
 
 <main>
-
+    
 <Router>
     <h1>Manual Actuation</h1>
 
@@ -234,7 +200,7 @@ function handleActuatorClick(e) {
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
-            <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
+            <button on:click={handleClickRfPower(Com)} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
             {#await configureAttempt }
                 <p>attempting configuration ...</p>
@@ -245,28 +211,8 @@ function handleActuatorClick(e) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
+            <Devices bind:devices bind:activeDevice/>
 
-            <h2>Addressable Devices</h2>
-
-            <label for="device">Device </label> <input bind:value={newDevice} />
-            <button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
-
-            {#if devices.length > 0 }
-                <p> Active Device: {devices[activeDevice]} </p>
-            {:else}
-                <p> No addressable device to activate </p>
-            {/if}
-
-            <ul>
-                {#each devices as device, idx}
-                    <li class="device">{device}
-                        <button on:click={handleClickRemove(idx)}> Remove </button>
-                        {#if activeDevice != idx}
-                            <button on:click={handleClickActive(idx)}> Make Active </button>
-                        {/if}
-                    </li>
-                {/each}
-            </ul>
         </div><div class='col-25'>
             <h2>Timer Configuration</h2>
 
@@ -292,7 +238,7 @@ function handleActuatorClick(e) {
             </Route>
             <Route path="showLF">
                 <h3>Manually Specify Timing</h3>
-                <Link to="specify"><button>Infer Low Frequency</button></Link>
+                <Link to="/"><button>Infer Low Frequency</button></Link>
 
                 <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 
@@ -304,7 +250,7 @@ function handleActuatorClick(e) {
                     
             </Route>
         </div>
-        <Hexagons on:click={handleActuatorClick} on:message="{e => buildCommandBlocks(e.detail.value)}" bind:activeHexagon bind:test_ui/>
+        <Hexagons on:click={handleActuatorClick} on:message="{e => buildCommandBlocks(e.detail.value, Com)}" bind:activeHexagon bind:test_ui/>
 
         {#if test_ui}
                 <p>Test: {block0_31}, {block32_63}, {block64_95}, {block96_127}</p>
@@ -339,10 +285,6 @@ function handleActuatorClick(e) {
     p.failure {
         color: maroon;
         font-size: medium;
-    }
-
-    li.device {
-        margin: 1em;
     }
 
 </style>

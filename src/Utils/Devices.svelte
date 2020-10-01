@@ -1,0 +1,82 @@
+<script>
+import Communication from "./Communication.svelte";
+
+let Com;
+let endpoint;
+let nopRoute;
+let success;
+$: message = 'starting ...';
+
+export let activeDevice = 0;
+export let devices = [ ];
+
+$: newDevice = "Device0";
+$: searching = false;
+$: deviceButtonDisabled = searching || devices.includes(newDevice);
+$: deviceButtonMessage = "Find";
+
+
+function handleClickDevice(child) {
+    (async () => {
+        searching = true;
+        deviceButtonMessage = "Searching ...";
+        return await child.hitEndpoint(endpoint, nopRoute, success);
+    })().then(() => {
+        searching = false;
+        devices.push(newDevice);
+        devices = devices;
+        deviceButtonMessage = "Find";
+    }).catch(error => {
+        console.log(error);
+        searching = false;
+        message = error;
+        deviceButtonMessage = "Re-attempt Search";
+    });
+}
+
+function handleClickRemove(idx) {
+    return () => {
+        if(idx <= activeDevice && activeDevice != 0) {
+            activeDevice -= 1
+        }
+        devices.splice(idx, 1);
+        devices = devices;
+    }
+}
+
+function handleClickActive(idx) {
+    return () => {
+        activeDevice = idx;
+    }
+}
+</script>
+
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message/>
+
+<h2>Addressable Devices</h2>
+
+<label for="device">Device </label> <input bind:value={newDevice} />
+<button on:click={handleClickDevice(Com)} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
+
+{#if devices.length > 0 }
+    <p> Active Device: {devices[activeDevice]} </p>
+{:else}
+    <p> No addressable device to activate </p>
+{/if}
+
+<ul>
+    {#each devices as device, idx}
+        <li class="device">{device}
+            <button on:click={handleClickRemove(idx)}> Remove </button>
+            {#if activeDevice != idx}
+                <button on:click={handleClickActive(idx)}> Make Active </button>
+            {/if}
+        </li>
+    {/each}
+</ul>
+
+<style>
+    li.device {
+        margin: 1em;
+    }
+</style>
