@@ -14,12 +14,6 @@ let Com;
 let nopRoute = '';
 let success = '{ "Success": { } }';
 
-const hitEndpoint = async (endpoint, route, body) => {
-    const response = await fetch(endpoint + route, { method: 'POST', body});
-    const result = await response.json();
-    message = JSON.stringify(result);
-    return message;
-}
 
 // MARK: Server Configuration
 
@@ -29,7 +23,7 @@ $: route = "api_index";
 $: endpoint = `http://${hostname}:${port}/${route}`;
 
 $: connectionAttempt = (async () => {
-    return await hitEndpoint(endpoint, nopRoute, success);
+    return await Com.hitEndpoint(endpoint, nopRoute, success);
 })();
 
 // MARK: Antenna Configuration
@@ -42,11 +36,11 @@ $: antennaButtonMessage = "Configure";
 
 $: configureAttempt = {};
 
-function handleClickRfPower() {
+function handleClickRfPower(child) {
     configureAttempt = (async () => {
         configuring = true;
         antennaButtonMessage = "Configuring ...";
-        return await hitEndpoint(endpoint, nopRoute, success);
+        return await child.hitEndpoint(endpoint, nopRoute, success);
     })().then(result => {
         configuring = false;
         activeRfPower = rfPower;
@@ -151,10 +145,10 @@ function buildCommandBlocks(active) {
 }
 
 //Handles mouseEvents from hexgon component
-function handleActuatorClick(e) {
-    buildCommandBlocks(e.detail.value);
+function handleActuatorClick(active, child) {
+    buildCommandBlocks(active, child);
     (async () => {
-        return await hitEndpoint(endpoint, nopRoute, act_command);
+        return await child.hitEndpoint(endpoint, nopRoute, act_command);
     })().then(result => {
         if(pendingTimeout) {
             clearTimeout(pendingTimeout);
@@ -171,7 +165,7 @@ function handleActuatorClick(e) {
 </script>
 
 <main>
-    
+<Communication bind:this={Com} />
 <Router>
     <h1>Manual Actuation</h1>
 
@@ -197,7 +191,7 @@ function handleActuatorClick(e) {
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
-            <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
+            <button on:click={handleClickRfPower(Com)} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
             {#await configureAttempt }
                 <p>attempting configuration ...</p>
@@ -247,7 +241,7 @@ function handleActuatorClick(e) {
                     
             </Route>
         </div>
-        <Hexagons on:click={handleActuatorClick} on:message="{e => buildCommandBlocks(e.detail.value)}" bind:activeHexagon bind:test_ui/>
+        <Hexagons on:click={e => handleActuatorClick(e.detail.value, Com)} on:message="{e => buildCommandBlocks(e.detail.value)}" bind:activeHexagon bind:test_ui/>
 
         {#if test_ui}
                 <p>Test: {block0_31}, {block32_63}, {block64_95}, {block96_127}</p>
