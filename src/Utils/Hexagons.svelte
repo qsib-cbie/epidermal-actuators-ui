@@ -1,7 +1,13 @@
 <script>
 import { createEventDispatcher } from 'svelte';
+import Moveable from "svelte-moveable";
 
 const dispatch = createEventDispatcher();
+
+let target;
+const frame = {rotate: 0,};
+let moveable;
+
 export let test_ui = false;
 export let activeHexagon = -1;
 export let orientation = "horizontal"; //orientation refers to direction numbers are listed (horizontal:left to right, vertical:top to bottom)
@@ -9,7 +15,7 @@ export let orientation = "horizontal"; //orientation refers to direction numbers
 $: mouseDown = false;
 $: rotation = orientation === "horizontal" ? 0 : 90;
 
-const horizontalHexagons = [
+const hexagons = [
   // Row 0
   { id: 0, row: 0, col: 1 },
   { id: 1, row: 0, col: 3 },
@@ -62,59 +68,7 @@ const horizontalHexagons = [
   { id: 34, row: 6, col: 7 },
   { id: 35, row: 6, col: 9 },];
 
-const verticalHexagons = [
-  // Row 0
-  { id: 0, row: 9, col: 0 },
-  { id: 1, row: 7, col: 0 },
-  // filler
-  { id: 2, row: 3, col: 0 },
-  { id: 3, row: 1, col: 0 },
-
-  // Row 1
-  { id: 4, row: 10, col: 1 },
-  { id: 5, row: 8, col: 1 },
-  { id: 6, row: 6, col: 1 },
-  { id: 7, row: 4, col: 1 },
-  { id: 8, row: 2, col: 1 },
-  { id: 9, row: 0, col: 1 },
-
-  // Row 2
-  { id: 10, row: 9, col: 2 },
-  { id: 11, row: 7, col: 2 },
-  { id: 12, row: 5, col: 2 },
-  { id: 13, row: 3, col: 2 },
-  { id: 14, row: 1, col: 2 },
-
-  // Row 3
-  { id: 15, row: 10, col: 3 },
-  { id: 16, row: 8, col: 3 },
-  { id: 17, row: 6, col: 3 },
-  { id: 18, row: 4, col: 3 },
-  { id: 19, row: 2, col: 3 },
-  { id: 20, row: 0, col: 3 },
-
-  // Row 4
-  { id: 21, row: 9, col: 4 },
-  { id: 22, row: 7, col: 4 },
-  { id: 23, row: 5, col: 4 },
-  { id: 24, row: 3, col: 4 },
-  { id: 25, row: 1, col: 4 },
-
-  // Row 5
-  { id: 26, row: 10, col: 5 },
-  { id: 27, row: 8, col: 5 },
-  { id: 28, row: 6, col: 5 },
-  { id: 29, row: 4, col: 5 },
-  { id: 30, row: 2, col: 5 },
-  { id: 31, row: 0, col: 5 },
-
-  // Row 6
-  { id: 32, row: 9, col: 6 },
-  { id: 33, row: 7, col: 6 },
-  // filler
-  { id: 34, row: 3, col: 6 },
-  { id: 35, row: 1, col: 6 },];
-  const hexagonSideLength = 70;
+const hexagonSideLength = 70;
 const globalPadding = 10;
 const baseSpacing = 15;
 const horizontalSpacing = baseSpacing;
@@ -122,36 +76,21 @@ const verticalSpacing = 1.5 * baseSpacing;
 const width = Math.sqrt(3) * hexagonSideLength;
 const height = 2 * hexagonSideLength;
 
-$: oriented_hexagons = orientation === "horizontal" ? horizontalHexagons : verticalHexagons;
-
 // Compute the pixel location for each hexagon
-const horizontalHexagonsWithoutPixels = horizontalHexagons.map(({id, row, col}) => {
+const hexagonsWithoutPixels = hexagons.map(({id, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
     return {id, row, col, x, y}
 });
-const verticalHexagonsWithoutPixels = verticalHexagons.map(({id, row, col}) => {
-    const x = (globalPadding / 2) + (col/2 * 1.5 + .5) * height + Math.max((col / 2) * (horizontalSpacing+5), 0);
-    const y = (globalPadding / 2) + ((row/2) + .5) * width + Math.max((row / 2) * (verticalSpacing-5), 0);
-    return {id, row, col, x, y}
-});
 
-const horizantalViewBox = horizontalHexagonsWithoutPixels.reduce((previousValue, currentValue) => {
+const viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     return {
         x: Math.max(previousValue.x, currentValue.x + (width / 2) + (globalPadding / 2)),
         y: Math.max(previousValue.y, currentValue.y + (height / 2) + (globalPadding / 2)),
     };
 });
-const  verticalViewBox = verticalHexagonsWithoutPixels.reduce((previousValue, currentValue) => {
-    return {
-        x: Math.max(previousValue.x, currentValue.x + (height / 2) + (globalPadding / 2)),
-        y: Math.max(previousValue.y, currentValue.y + (width / 2) + (globalPadding / 2)),
-    };
-});
 
-$: viewBox = orientation === "horizontal" ? horizantalViewBox : verticalViewBox;
-
-$: drawableHexagons = oriented_hexagons.map(({id, row, col}) => {
+$: drawableHexagons = hexagons.map(({id, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -164,8 +103,8 @@ $: drawableHexagons = oriented_hexagons.map(({id, row, col}) => {
       `${0}, ${3 * a}`,
       `${0}, ${a}`,
     ];
-    const x = orientation === "horizontal" ? (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0) : (globalPadding / 2) + (col/2 * 1.5 + .5) * height + Math.max((col / 2) * (horizontalSpacing+5), 0);
-    const y = orientation === "horizontal" ? (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0) : (globalPadding / 2) + ((row/2) + .5) * width + Math.max((row / 2) * (verticalSpacing-5), 0);
+    const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
+    const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
     const color = activeHexagon === id ? "mediumseagreen" : "black";
 
     return {id, x, y, width, height, points: points.join(' '), color};
@@ -213,10 +152,9 @@ function handleMouseUp(event) { handleTouchEnd(event); }
 
 
 </script>
-
-<div class='col-50'>
-    <h2>Device Input</h2>
-
+<button on:click={() => moveable.request("rotatable",{deltaRotate: 30}, true)}>Rotate</button>
+<button on:click={() => moveable.request("rotatable",{rotate: 0}, true)}>Reset</button>
+<div class='col-50' bind:this={target}>
     <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width={`${viewBox.x}px`}
         height={`${viewBox.y}px`}
@@ -243,12 +181,26 @@ function handleMouseUp(event) { handleTouchEnd(event); }
                 </g>
         {/each}
     </svg>
-    {#if test_ui}
-        {#each horizontalHexagons as actuator}
+</div>
+<div>
+{#if test_ui}
+        {#each hexagons as actuator}
             <button on:click={() => dispatch('message', {value: actuator.id})}> Button {actuator.id}</button>
         {/each}
-    {/if}
+{/if}
 </div>
+
+<Moveable target={target} rotatable={true} throttleRotate={0} rotatePosition="top" bind:this={moveable}
+on:rotateStart={({ detail: {set}}) => {set(frame.rotate);}}
+on:rotate={({ detail: { target, beforeRotate }}) => {
+        frame.rotate = beforeRotate;
+        target.style.transform = `rotate(${beforeRotate}deg)`;
+    }}
+on:rotateEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
+    console.log("onRotateEnd", target, isDrag);
+}}
+/>
+
 
 <style>
     .col-50 {
@@ -264,4 +216,5 @@ function handleMouseUp(event) { handleTouchEnd(event); }
     svg {
         cursor: draggable;
     }
+
 </style>

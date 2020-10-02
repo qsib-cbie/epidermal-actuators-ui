@@ -321,7 +321,7 @@ function handleActuatorClick(e) {
     }
 
     .col-25 {
-        width: 25%;
+        width: 20%;
         height: 100%;
 
         display: inline-block;
