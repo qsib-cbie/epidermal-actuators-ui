@@ -10,10 +10,10 @@ let moveable;
 
 export let test_ui = false;
 export let activeHexagon = -1;
-export let orientation = "horizontal"; //orientation refers to direction numbers are listed (horizontal:left to right, vertical:top to bottom)
+
 
 $: mouseDown = false;
-$: rotation = orientation === "horizontal" ? 0 : 90;
+$: rotation = 30;
 
 const hexagons = [
   // Row 0
@@ -152,8 +152,16 @@ function handleMouseUp(event) { handleTouchEnd(event); }
 
 
 </script>
-<button on:click={() => moveable.request("rotatable",{deltaRotate: 30}, true)}>Rotate</button>
-<button on:click={() => moveable.request("rotatable",{rotate: 0}, true)}>Reset</button>
+
+
+<div class="col-5">
+    <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
+    <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
+    <input style="width: 50%" bind:value={rotation}/> &deg
+    <br/>
+    <button on:click={() => moveable.request("rotatable",{rotate: 0}, true)}>Reset</button>
+</div>
+
 <div class='col-50' bind:this={target}>
     <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
         width={`${viewBox.x}px`}
@@ -175,7 +183,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
                     stroke={hexagon.color}
                     stroke-width="5px"
                     strokeLinejoin="miter"
-                    transform={`rotate(${rotation} ${hexagon.x} ${hexagon.y}) translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                    transform={`rotate(0 ${hexagon.x} ${hexagon.y}) translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                     points={hexagon.points} />
                     <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
                 </g>
@@ -203,6 +211,14 @@ on:rotateEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
 
 
 <style>
+    .col-5 {
+        width: 5%;
+        height: 10%;
+        display: inline-block;
+        vertical-align: top;
+        margin: 0px auto;
+    }
+
     .col-50 {
         width: 40%;
         height: 100%;
