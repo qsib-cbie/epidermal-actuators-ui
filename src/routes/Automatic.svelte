@@ -3,7 +3,6 @@
     import Hexagons from '../Utils/Hexagons.svelte';
 
     export let test_ui = false;
-    let option_w, option_h;
 </script>
 
 <Router>
@@ -53,7 +52,6 @@
     .option{
         width: 100%;
         height: 300px;
-        /* margin: 5px; */
         margin-top: 10px;
         margin-bottom: 10px;
         outline: solid;
@@ -64,7 +62,6 @@
     .button{
         width: 100%;
         height: 100%;
-        /* background-image: url("../../img/preset_chest.png"); */
         background-color: white;
     }
     

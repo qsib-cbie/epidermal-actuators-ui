@@ -6,7 +6,7 @@ import Hexagons from "../Utils/Hexagons.svelte";
 export let test_ui = false;
 $: pendingTimeout = false;
 $: message = 'starting ...';
-// $: message = message.toUpperCase();
+
 
 const nopRoute = '';
 const success = '{ "Success": { } }';

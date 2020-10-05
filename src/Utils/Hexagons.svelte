@@ -2,14 +2,16 @@
 import { createEventDispatcher } from 'svelte';
 import Moveable from "svelte-moveable";
 
-const dispatch = createEventDispatcher();
-
-let target;
-const frame = {rotate: 0,};
-let moveable;
-
 export let test_ui = false;
 export let activeHexagon = -1;
+
+let target;
+let moveable;
+
+const frame = {rotate: 0,};
+const dispatch = createEventDispatcher();
+
+
 
 
 $: mouseDown = false;
@@ -183,7 +185,7 @@ function handleMouseUp(event) { handleTouchEnd(event); }
                     stroke={hexagon.color}
                     stroke-width="5px"
                     strokeLinejoin="miter"
-                    transform={`rotate(0 ${hexagon.x} ${hexagon.y}) translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                    transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                     points={hexagon.points} />
                     <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
                 </g>
@@ -205,7 +207,7 @@ on:rotate={({ detail: { target, beforeRotate }}) => {
         target.style.transform = `rotate(${beforeRotate}deg)`;
     }}
 on:rotateEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
-    console.log("onRotateEnd", target, isDrag);
+
 }}
 />
 
