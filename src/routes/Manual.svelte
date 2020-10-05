@@ -6,7 +6,6 @@ import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
 
 // MARK: Message
-export let test_ui = false;
 $: pendingTimeout = false;
 $: message = 'starting ...';
 let Com;
@@ -32,18 +31,30 @@ $: activeRfPower = 0;
 $: configuring = false;
 $: antennaButtonDisabled = configuring || rfPower == activeRfPower;
 $: antennaButtonMessage = "Configure";
+$: rf_command = `{ "SetRadioFreqPower": { "power_level": ${rfPower}} }`
+const reset_command = '{ "SystemReset": { } }';
 
 $: configureAttempt = {};
-
+//Need system reset after sending this command?
 function handleClickRfPower() {
     configureAttempt = (async () => {
         configuring = true;
         antennaButtonMessage = "Configuring ...";
-        return await Com.hitEndpoint(endpoint, nopRoute, success);
+        return await Com.hitEndpoint(endpoint, nopRoute, rf_command);
     })().then(result => {
         configuring = false;
         activeRfPower = rfPower;
         antennaButtonMessage = "Configure";
+        (async () => {
+            message = "Restarting System ...";
+            return await Com.hitEndpoint(endpoint, nopRoute, reset_command);
+        })().then(result => {
+            message = "System Reset Complete"
+            return result;
+        }).catch(error => {
+            message = error;
+            throw error;
+        });
         return result;
     }).catch(error => {
         message = error;
@@ -51,6 +62,7 @@ function handleClickRfPower() {
         antennaButtonMessage = "Re-attempt Configure";
         throw error;
     });
+    
 }
 
 
@@ -163,7 +175,7 @@ function setTimingBlock(config) {
                     
             </Route>
         </div>
-        <Hexagons bind:message bind:test_ui/>
+        <Hexagons bind:message/>
 
         
   </div>

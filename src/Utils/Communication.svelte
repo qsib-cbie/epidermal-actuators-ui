@@ -7,7 +7,6 @@ export const nopRoute = '';
 export const success = '{ "Success": { } }';
 
 export const hitEndpoint = async (endpoint, route, body) => {
-    console.log("Hit Endpoint");
     const response = await fetch(endpoint + route, { method: 'POST', body});
     const result = await response.json();
     message = JSON.stringify(result);

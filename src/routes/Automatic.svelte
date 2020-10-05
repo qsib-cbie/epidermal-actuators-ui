@@ -5,7 +5,6 @@ import { Router, Link, Route } from 'svelte-routing';
 import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
 
-export let test_ui = false;
 
 
 </script>
@@ -27,14 +26,14 @@ export let test_ui = false;
         </div>
     </div>
     <Route path="/">
-        <Hexagons bind:test_ui/>
+        <Hexagons/>
     </Route>
 
     <Route path="OP2">
-        <Hexagons bind:test_ui/>
+        <Hexagons/>
     </Route>
     <Route path="OP3">
-        <Hexagons bind:test_ui/>
+        <Hexagons/>
     </Route>
 </Router>
 

@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/extend-expect'
-import { render, fireEvent, getByTestId } from '@testing-library/svelte'
-import Manual from '../routes/Manual.svelte'
+import { render, fireEvent } from '@testing-library/svelte'
+import Hexagons from '../Utils/Hexagons.svelte'
 
 const groundTruth = [
     'Test: 00000001,00000000,00000000,00000000, 00000000,00000000,00000000,00000000, 00000000,00000000,00000000,00000000, 00000000,00000000,00000000,00000000',
@@ -135,7 +135,7 @@ const groundTruth = [
 
 
 test('Sends correct Actuator command',async () => {
-    const { getByText } = render(Manual,{test_ui: true})
+    const { getByText } = render(Hexagons,{test_ui: true})
     // Set output to watch
     const output = getByText('Test: 0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0')
     //Loop through all actuators

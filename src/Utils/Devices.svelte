@@ -7,8 +7,8 @@ let endpoint;
 let nopRoute;
 let success;
 $: message = 'starting ...';
-
-
+$: add_device_command = `{ "AddFabric": { "fabric_name": "${newDevice}" } }`;
+$: remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[$activeDevice]}" } }`;
 $: newDevice = "Device0";
 $: searching = false;
 $: deviceButtonDisabled = searching || $devices.includes(newDevice);
@@ -19,13 +19,12 @@ function handleClickDevice() {
     (async () => {
         searching = true;
         deviceButtonMessage = "Searching ...";
-        return await Com.hitEndpoint(endpoint, nopRoute, success);
+        return await Com.hitEndpoint(endpoint, nopRoute, add_device_command);
     })().then(() => {
         searching = false;
         $devices = [...$devices, newDevice];
         deviceButtonMessage = "Find";
     }).catch(error => {
-        console.log(error);
         searching = false;
         message = error;
         deviceButtonMessage = "Re-attempt Search";
@@ -34,10 +33,18 @@ function handleClickDevice() {
 
 function handleClickRemove(idx) {
     return () => {
-        if(idx <= $activeDevice && $activeDevice != 0) {
+        (async () => {
+            remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[idx]}" } }`
+            return await Com.hitEndpoint(endpoint, nopRoute, remove_device_command);
+        })().then(() => {
+            if(idx <= $activeDevice && $activeDevice != 0) {
             activeDevice.update(n => n - 1)
-        }
-        $devices = $devices.filter(n => n !== $devices[idx]); 
+            }
+            $devices = $devices.filter(n => n !== $devices[idx]);    
+        }).catch(error => {
+            console.log(error);
+            message = error;
+        });
     }
 }
 

@@ -4,9 +4,9 @@ export const activeDevice = writable(0);
 export const devices = writable([]);
 
 export const block0_31 = writable([0,0,0,0]);
-export const block32_63 = writable([0, 0, 0, 0]);
-export const block64_95 = writable([0, 0, 0, 0]);
-export const block96_127 = writable([0, 0, 0, 0]);
+export const block32_63 = writable([0,0,0,0]);
+export const block64_95 = writable([0,0,0,0]);
+export const block96_127 = writable([0,0,0,0]);
 
 export const single_pulse_block = writable([0, 0, 0, 0]);
 export const hf_block = writable([0, 0, 0, 0]);
