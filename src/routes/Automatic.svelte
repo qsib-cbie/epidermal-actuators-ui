@@ -5,8 +5,6 @@ import { Router, Link, Route } from 'svelte-routing';
 import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
 
-
-
 </script>
 
 <Router>
@@ -58,7 +56,6 @@ import Hexagons from '../Utils/Hexagons.svelte';
     .option{
         width: 100%;
         height: 100px;
-        /* margin: 5px; */
         margin-top: 10px;
         margin-bottom: 10px;
         outline: solid;
@@ -69,7 +66,6 @@ import Hexagons from '../Utils/Hexagons.svelte';
     .button{
         width: 100%;
         height: 100%;
-        /* background-image: url("../../img/preset_chest.png"); */
         background-color: white;
     }
     

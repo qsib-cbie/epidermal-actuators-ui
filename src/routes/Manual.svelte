@@ -101,10 +101,11 @@ function setTimingBlock(config) {
 <main>
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:hostname bind:port bind:route/>
 <Router>
-    <h1>Manual Actuation</h1>
 
     <div class='content-wrapper'>
+
         <div class='col-25'>
+            <h1>Manual Actuation</h1>
             <h2>Messages</h2>
             <p>{message}</p>
 
@@ -139,6 +140,7 @@ function setTimingBlock(config) {
             <Devices bind:message />
 
         </div><div class='col-25'>
+            <br/><br/><br/>
             <h2>Timer Configuration</h2>
 
             <Link to="/"><button>Specify Timer Config</button></Link>
@@ -190,7 +192,7 @@ function setTimingBlock(config) {
     }
 
     .col-25 {
-        width: 25%;
+        width: 20%;
         height: 100%;
 
         display: inline-block;
