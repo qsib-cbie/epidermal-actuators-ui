@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { activeDevice, devices } from "../../stores/stores"
+import { lf_block, hf_block, single_pulse_block  } from "../../stores/stores"
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -10,7 +10,7 @@ export let test_ui = false;
 $: pendingTimeout = false;
 $: message = 'starting ...';
 let Com;
-
+let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
 
@@ -20,7 +20,6 @@ let success = '{ "Success": { } }';
 $: hostname = "localhost";
 $: port = "8088";
 $: route = "api_index";
-$: endpoint = `http://${hostname}:${port}/${route}`;
 
 $: connectionAttempt = (async () => {
     return await Com.hitEndpoint(endpoint, nopRoute, success);
@@ -36,11 +35,11 @@ $: antennaButtonMessage = "Configure";
 
 $: configureAttempt = {};
 
-function handleClickRfPower(child) {
+function handleClickRfPower() {
     configureAttempt = (async () => {
         configuring = true;
         antennaButtonMessage = "Configuring ...";
-        return await child.hitEndpoint(endpoint, nopRoute, success);
+        return await Com.hitEndpoint(endpoint, nopRoute, success);
     })().then(result => {
         configuring = false;
         activeRfPower = rfPower;
@@ -65,13 +64,13 @@ $: hfDutyCycle = 50;
 $: single_pulse_duration = 500; //low priority
 
 
-$: single_pulse_block = [0,0,0,0];
+$: $single_pulse_block = [0,0,0,0];
 
 $: hfOn = hfPeriod * (hfDutyCycle/100);
-$: hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
+$: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
 
 $: lfOn = lfPeriod * (lfDutyCycle/100);
-$: lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
+$: $lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
 
 function setTimingBlock(config) {
     if (config == "infer") {
@@ -84,88 +83,11 @@ function setTimingBlock(config) {
     }
 }
 
-// MARK: Device Input
-
-let activeHexagon = -1;
-
-let block0_31 = [0,0,0,0];
-let block32_63 = [0,0,0,0];
-let block64_95 = [0,0,0,0];
-let block96_127 = [0,0,0,0];
-
-
-//Leaving this reactive 
-$: act_command = `{ "ActuatorsCommand": {
-    "fabric_name": "${$devices[$activeDevice]}",
-    "op_mode_block": {"act_cnt32":2, "act_mode":0, "op_mode":2},
-    "actuator_mode_blocks": {
-      "block0_31":{"b0": ${block0_31[0]}, "b1": ${block0_31[1]}, "b2": ${block0_31[2]}, "b3": ${block0_31[3]}},
-      "block32_63":{"b0": ${block32_63[0]}, "b1": ${block32_63[1]}, "b2": ${block32_63[2]}, "b3": ${block32_63[3]}},
-      "block64_95":{"b0": ${block64_95[0]}, "b1": ${block64_95[1]}, "b2": ${block64_95[2]}, "b3": ${block64_95[3]}},
-      "block96_127":{"b0": ${block96_127[0]}, "b1": ${block96_127[1]}, "b2": ${block96_127[2]}, "b3": ${block96_127[3]}}},
-    "timer_mode_blocks": {
-      "single_pulse_block":{"b0":${single_pulse_block[0]}, "b1":${single_pulse_block[1]}, "b2":${single_pulse_block[2]}, "b3":${single_pulse_block[3]}},
-      "hf_block":{"b0":${hf_block[0]}, "b1":${hf_block[1]}, "b2":${hf_block[2]}, "b3":${hf_block[3]}},
-      "lf_block":{"b0":${lf_block[0]}, "b1":${lf_block[1]}, "b2":${lf_block[2]}, "b3":${lf_block[3]}}
-    } } }`;
-
-
-function getBytesForActuator(actuator) {
-    /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
-    let shiftActuator;
-    let binActuator;
-    const zero = '0';
-    if (actuator <= 31) {
-        shiftActuator = Math.abs(1 << actuator); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0'); 
-        binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-    } else if (actuator >= 32 && actuator < 63) {
-        shiftActuator = Math.abs(1 << (actuator - 32)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-    } else if (actuator >= 64 && actuator < 95) {
-        shiftActuator = Math.abs(1 << (actuator - 64)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-    } else if (actuator >= 96 && actuator < 127) {
-        shiftActuator = Math.abs(1 << (actuator - 96)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = binActuator + zero.repeat(96);
-    }
-    return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
-}
-
-function buildCommandBlocks(active) {
-    const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
-    block0_31 = [b0_0, b0_1, b0_2, b0_3];
-    block32_63 = [b1_0, b1_1, b1_2, b1_3];
-    block64_95 = [b2_0, b2_1, b2_2, b2_3];
-    block96_127 = [b3_0, b3_1, b3_2, b3_3];
-
-}
-
-//Handles mouseEvents from hexgon component
-function handleActuatorClick(active, child) {
-    buildCommandBlocks(active, child);
-    (async () => {
-        return await child.hitEndpoint(endpoint, nopRoute, act_command);
-    })().then(result => {
-        if(pendingTimeout) {
-            clearTimeout(pendingTimeout);
-        }
-        pendingTimeout = setTimeout(() => { activeHexagon = -1 }, 500);
-        return result;
-    }).catch(error => {
-        message = error;
-        activeHexagon = -1;
-        throw error;
-    });
-}
 
 </script>
 
 <main>
-<Communication bind:this={Com} />
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:hostname bind:port bind:route/>
 <Router>
     <h1>Manual Actuation</h1>
 
@@ -191,7 +113,7 @@ function handleActuatorClick(active, child) {
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
-            <button on:click={handleClickRfPower(Com)} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
+            <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
             {#await configureAttempt }
                 <p>attempting configuration ...</p>
@@ -202,7 +124,7 @@ function handleActuatorClick(active, child) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-            <Devices />
+            <Devices bind:message />
 
         </div><div class='col-25'>
             <h2>Timer Configuration</h2>
@@ -241,11 +163,9 @@ function handleActuatorClick(active, child) {
                     
             </Route>
         </div>
-        <Hexagons on:click={e => handleActuatorClick(e.detail.value, Com)} on:message="{e => buildCommandBlocks(e.detail.value)}" bind:activeHexagon bind:test_ui/>
+        <Hexagons bind:message bind:test_ui/>
 
-        {#if test_ui}
-                <p>Test: {block0_31}, {block32_63}, {block64_95}, {block96_127}</p>
-        {/if}
+        
   </div>
 
 </Router>

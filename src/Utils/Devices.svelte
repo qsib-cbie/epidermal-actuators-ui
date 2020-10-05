@@ -15,11 +15,11 @@ $: deviceButtonDisabled = searching || $devices.includes(newDevice);
 $: deviceButtonMessage = "Find";
 
 
-function handleClickDevice(child) {
+function handleClickDevice() {
     (async () => {
         searching = true;
         deviceButtonMessage = "Searching ...";
-        return await child.hitEndpoint(endpoint, nopRoute, success);
+        return await Com.hitEndpoint(endpoint, nopRoute, success);
     })().then(() => {
         searching = false;
         $devices = [...$devices, newDevice];
@@ -53,7 +53,7 @@ function handleClickActive(idx) {
 <h2>Addressable Devices</h2>
 
 <label for="device">Device </label> <input bind:value={newDevice} />
-<button on:click={handleClickDevice(Com)} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
+<button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
 
 {#if $devices.length > 0 }
     <p> Active Device: {$devices[$activeDevice]} </p>

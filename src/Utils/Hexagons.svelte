@@ -1,13 +1,58 @@
 <script>
 import { createEventDispatcher } from 'svelte';
+import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js"
+import Communication from "./Communication.svelte"
 
 const dispatch = createEventDispatcher();
 export let test_ui = false;
 export let activeHexagon = -1;
 export let orientation = "horizontal"; //orientation refers to direction numbers are listed (horizontal:left to right, vertical:top to bottom)
 
+
+let Com;
+let pendingTimeout;
+let endpoint;
+let nopRoute;
+let success;
+export let message = 'starting ...';
+
 $: mouseDown = false;
 $: rotation = orientation === "horizontal" ? 0 : 90;
+
+function getBytesForActuator(actuator) {
+    /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
+    let shiftActuator;
+    let binActuator;
+    const zero = '0';
+    if (actuator <= 31) {
+        shiftActuator = Math.abs(1 << actuator); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0'); 
+        binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
+    } else if (actuator >= 32 && actuator < 63) {
+        shiftActuator = Math.abs(1 << (actuator - 32)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
+    } else if (actuator >= 64 && actuator < 95) {
+        shiftActuator = Math.abs(1 << (actuator - 64)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
+    } else if (actuator >= 96 && actuator < 127) {
+        shiftActuator = Math.abs(1 << (actuator - 96)); 
+        binActuator = shiftActuator.toString(2).padStart(32,'0');
+        binActuator = binActuator + zero.repeat(96);
+    }
+    return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
+}
+
+function buildCommandBlocks(active) {
+    const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
+    block0_31.set([b0_0, b0_1, b0_2, b0_3]);
+    block32_63.set([b1_0, b1_1, b1_2, b1_3]);
+    block64_95.set([b2_0, b2_1, b2_2, b2_3]);
+    block96_127.set([b3_0, b3_1, b3_2, b3_3]);
+
+}
+
 
 const horizontalHexagons = [
   // Row 0
@@ -195,8 +240,21 @@ function handleTouchMove(e) {
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
             activeHexagon = drawableHexagons[i].id;
-            dispatch('click', {value: activeHexagon}); //trigger click event to call function in Manual compnent
-      }
+            buildCommandBlocks(activeHexagon);
+            (async () => {
+                return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
+            })().then(result => {
+                if(pendingTimeout) {
+                    clearTimeout(pendingTimeout);
+                }
+                pendingTimeout = setTimeout(() => { activeHexagon = -1 }, 500);
+                return result;
+            }).catch(error => {
+                message = error;
+                activeHexagon = -1;
+                throw error;
+            });
+        }
     }
 }
 function handleTouchEnd(e) {
@@ -207,12 +265,10 @@ function handleTouchEnd(e) {
     activeHexagon = -1;
 }
 
-function handleMouseDown(event) { handleTouchStart(event); }
-function handleMouseMove(event) { handleTouchMove(event); }
-function handleMouseUp(event) { handleTouchEnd(event); }
-
 
 </script>
+
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:pendingTimeout/>
 
 <div class='col-50'>
     <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
@@ -220,9 +276,9 @@ function handleMouseUp(event) { handleTouchEnd(event); }
         height={`${viewBox.y}px`}
         viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
         preserveAspectRatio="xMidYMid meet"
-        on:mousedown={handleMouseDown}
-        on:mousemove={handleMouseMove}
-        on:mouseup={handleMouseUp}
+        on:mousedown={e => handleTouchStart(e)}
+        on:mousemove={e => handleTouchMove(e)}
+        on:mouseup={e => handleTouchEnd(e)}
         >
 
         {#each drawableHexagons as hexagon}
@@ -243,8 +299,10 @@ function handleMouseUp(event) { handleTouchEnd(event); }
     </svg>
     {#if test_ui}
         {#each horizontalHexagons as actuator}
-            <button on:click={() => dispatch('message', {value: actuator.id})}> Button {actuator.id}</button>
+            <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
         {/each}
+        <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+
     {/if}
 </div>
 
