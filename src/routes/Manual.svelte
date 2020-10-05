@@ -210,10 +210,11 @@ function handleActuatorClick(e) {
 <main>
 
 <Router>
-    <h1>Manual Actuation</h1>
 
     <div class='content-wrapper'>
+
         <div class='col-25'>
+            <h1>Manual Actuation</h1>
             <h2>Messages</h2>
             <p>{message}</p>
 
@@ -268,6 +269,7 @@ function handleActuatorClick(e) {
                 {/each}
             </ul>
         </div><div class='col-25'>
+            <br/><br/><br/>
             <h2>Timer Configuration</h2>
 
             <Link to="/"><button>Specify Timer Config</button></Link>
@@ -292,7 +294,7 @@ function handleActuatorClick(e) {
             </Route>
             <Route path="showLF">
                 <h3>Manually Specify Timing</h3>
-                <Link to="specify"><button>Infer Low Frequency</button></Link>
+                <Link to="/"><button>Infer Low Frequency</button></Link>
 
                 <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 

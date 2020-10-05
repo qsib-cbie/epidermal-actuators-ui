@@ -212,11 +212,12 @@ on:rotateEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
 
 <style>
     .col-5 {
-        width: 5%;
+        width: 7%;
         height: 10%;
         display: inline-block;
         vertical-align: top;
         margin: 0px auto;
+        font-size: large;
     }
 
     .col-50 {
