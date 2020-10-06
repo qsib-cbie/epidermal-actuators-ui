@@ -6,7 +6,6 @@ import Moveable from "svelte-moveable"
 
 export let test_ui = false;
 export let activeHexagon = -1;
-// export let orientation = "horizontal"; //orientation refers to direction numbers are listed (horizontal:left to right, vertical:top to bottom)
 export let message = 'starting ...';
 
 
@@ -22,7 +21,7 @@ let moveable;
 $: mouseDown = false;
 $: rotation = 30;
 
-const frame = {rotate: 0,}
+const frame = {rotate: 0,};
 
 function getBytesForActuator(actuator) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/

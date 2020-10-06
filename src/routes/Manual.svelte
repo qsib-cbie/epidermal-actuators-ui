@@ -87,10 +87,10 @@ $: $lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000
 function setTimingBlock(config) {
     if (config == "infer") {
         hfPeriod = 10;      
-        lfPeriod = 0xff;
+        lfPeriod = 0xffff;
         lfDutyCycle = 100;
     } else if (config == "hideLF"){
-        lfPeriod = 0xff;
+        lfPeriod = 0xffff;
         lfDutyCycle = 100;           
     }
 }
