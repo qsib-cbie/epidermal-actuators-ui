@@ -1,12 +1,16 @@
 <script>
-    import { Router, Link, Route } from 'svelte-routing';
-    import Hexagons from '../Utils/Hexagons.svelte';
+import { Router, Link, Route } from 'svelte-routing';
 
-    export let test_ui = false;
+
+import Devices from '../Utils/Devices.svelte';
+import Hexagons from '../Utils/Hexagons.svelte';
+
 </script>
 
 <Router>
     <h1>Automatic</h1>
+    <Devices />
+
     <div class='scroll-box'>
         <div class='option'>
             <!-- Option 1 is default -->
@@ -20,22 +24,22 @@
         </div>
     </div>
     <Route path="/">
-        <Hexagons bind:test_ui/>
+        <Hexagons/>
     </Route>
 
     <Route path="OP2">
-        <Hexagons orientation="vertical"/>
+        <Hexagons/>
     </Route>
     <Route path="OP3">
-        <Hexagons bind:test_ui/>
+        <Hexagons/>
     </Route>
 </Router>
 
 
 <style>
     .scroll-box{
-        width: 25%;
-        height: 750px;
+        width: 15%;
+        height: 500px;
 
         padding: 1em;
         margin: 10px;
@@ -51,7 +55,7 @@
 
     .option{
         width: 100%;
-        height: 300px;
+        height: 100px;
         margin-top: 10px;
         margin-bottom: 10px;
         outline: solid;
