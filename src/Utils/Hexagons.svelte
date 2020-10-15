@@ -1,13 +1,14 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js"
-import Communication from "./Communication.svelte"
-import Moveable from "svelte-moveable"
+import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js";
+import Communication from "./Communication.svelte";
+import Moveable from "svelte-moveable";
 
 
 export let test_ui = false;
 export let activeHexagon = -1;
 export let message = 'starting ...';
-
+export let orientation = "horizontal";
+export let arraySize = "normal";
 
 let Com;
 let pendingTimeout;
@@ -18,10 +19,15 @@ let success;
 let target;
 let moveable;
 
+$: initialRotation = orientation === "horizontal" ? 0 : -90;
+$: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
+$: setScaleStyle = arraySize === "small" ? "scale(0.2,0.2)" : "scale(1,1)";
+$: setStyle = "transform: "+setRotationstyle+setScaleStyle+";";
+
 $: mouseDown = false;
 $: rotation = 30;
 
-const frame = {rotate: 0,};
+const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 function getBytesForActuator(actuator) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
@@ -212,43 +218,43 @@ function handleTouchEnd(e) {
     <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
     <input style="width: 50%" bind:value={rotation}/> &deg
     <br/>
-    <button on:click={() => moveable.request("rotatable",{rotate: 0}, true)}>Reset</button>
+    <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
 </div>
 
-<div class='col-50' bind:this={target}>
-    <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-        width={`${viewBox.x}px`}
-        height={`${viewBox.y}px`}
-        viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
-        preserveAspectRatio="xMidYMid meet"
-        on:mousedown={e => handleTouchStart(e)}
-        on:mousemove={e => handleTouchMove(e)}
-        on:mouseup={e => handleTouchEnd(e)}
-        >
-
-        {#each drawableHexagons as hexagon}
-            <g key={`g-${hexagon.id}`}>
-                <polygon
-                    id={`hex-${hexagon.id}`}
-                    key={`hex-${hexagon.x}-${hexagon.y}`}
-                    class="activatable"
-                    fill="none"
-                    stroke={hexagon.color}
-                    stroke-width="5px"
-                    strokeLinejoin="miter"
-                    transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
-                    points={hexagon.points} />
-                    <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                </g>
-        {/each}
-    </svg>
-    {#if test_ui}
-        {#each hexagons as actuator}
-            <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
-        {/each}
-        <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
-
-    {/if}
+<div class='col-50' style={setStyle}>
+    <div bind:this={target}>
+        <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+            width={`${viewBox.x}px`}
+            height={`${viewBox.y}px`}
+            viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
+            preserveAspectRatio="xMidYMid meet"
+            on:mousedown={e => handleTouchStart(e)}
+            on:mousemove={e => handleTouchMove(e)}
+            on:mouseup={e => handleTouchEnd(e)}
+            >
+            {#each drawableHexagons as hexagon}
+                <g key={`g-${hexagon.id}`}>
+                    <polygon
+                        id={`hex-${hexagon.id}`}
+                        key={`hex-${hexagon.x}-${hexagon.y}`}
+                        class="activatable"
+                        fill="none"
+                        stroke={hexagon.color}
+                        stroke-width="5px"
+                        strokeLinejoin="miter"
+                        transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                        points={hexagon.points} />
+                        <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                    </g>
+            {/each}
+        </svg>
+        {#if test_ui}
+            {#each hexagons as actuator}
+                <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
+            {/each}
+            <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+        {/if}
+    </div>
 </div>
 
 <Moveable target={target} rotatable={true} throttleRotate={0} rotatePosition="top" bind:this={moveable}
@@ -266,7 +272,8 @@ on:rotate={({ detail: { target, beforeRotate }}) => {
         height: 10%;
         display: inline-block;
         vertical-align: top;
-        margin: 0px auto;
+        margin: 0em auto;
+        margin-top: 3em;
         font-size: large;
     }
 
@@ -277,7 +284,9 @@ on:rotate={({ detail: { target, beforeRotate }}) => {
         display: inline-block;
         vertical-align: top;
 
-        margin: 0px auto;
+        margin: 0em auto;
+        margin-top: 3em;
+
         padding: 1em;
     }
     svg {
