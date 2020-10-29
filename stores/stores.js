@@ -1,7 +1,11 @@
-import { derived, writable } from 'svelte/store';
+import { derived, readable, writable } from 'svelte/store';
+
+export const message = writable("starting...");
 
 export const activeDevice = writable(0);
 export const devices = writable([]);
+
+// export const stichables = writable([]);
 
 export const block0_31 = writable([0,0,0,0]);
 export const block32_63 = writable([0,0,0,0]);

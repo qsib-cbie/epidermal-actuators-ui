@@ -1,13 +1,13 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js"
-import Communication from "./Communication.svelte"
-import Moveable from "svelte-moveable"
+import { block0_31, block32_63, block64_95, block96_127, act_command, message } from "../../stores/stores.js";
+import Communication from "./Communication.svelte";
+import Moveable from "svelte-moveable";
 
 
 export let test_ui = false;
 export let activeHexagon = -1;
-export let message = 'starting ...';
-
+export let orientation = "horizontal";
+export let arraySize = "normal";
 
 let Com;
 let pendingTimeout;
@@ -50,10 +50,10 @@ function getBytesForActuator(actuator) {
 
 function buildCommandBlocks(active) {
     const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
-    block0_31.set([b0_0, b0_1, b0_2, b0_3]);
-    block32_63.set([b1_0, b1_1, b1_2, b1_3]);
-    block64_95.set([b2_0, b2_1, b2_2, b2_3]);
-    block96_127.set([b3_0, b3_1, b3_2, b3_3]);
+    block0_31.set([parseInt(b0_0,2), parseInt(b0_1,2), parseInt(b0_2,2), parseInt(b0_3,2)]);
+    block32_63.set([parseInt(b1_0,2), parseInt(b1_1,2), parseInt(b1_2,2), parseInt(b1_3,2)]);
+    block64_95.set([parseInt(b2_0,2), parseInt(b2_1,2), parseInt(b2_2,2), parseInt(b2_3,2)]);
+    block96_127.set([parseInt(b3_0,2), parseInt(b3_1,2), parseInt(b3_2,2), parseInt(b3_3,2)]);
 
 }
 
@@ -184,10 +184,13 @@ function handleTouchMove(e) {
                 if(pendingTimeout) {
                     clearTimeout(pendingTimeout);
                 }
+                if (result.hasOwnProperty('Failure')) {
+                    $message = result['Failure']['message']; 
+                } 
                 pendingTimeout = setTimeout(() => { activeHexagon = -1 }, 500);
                 return result;
             }).catch(error => {
-                message = error;
+                $message = error;
                 activeHexagon = -1;
                 throw error;
             });
@@ -205,7 +208,7 @@ function handleTouchEnd(e) {
 
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:pendingTimeout/>
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:pendingTimeout/>
 
 <div class="col-5">
     <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
