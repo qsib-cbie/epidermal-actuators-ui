@@ -1,11 +1,11 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 
 
 export let test_ui = false;
-export let activeHexagon = -1;
+export let activeHexagon = [-1];
 export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
@@ -158,7 +158,7 @@ $: drawableHexagons = hexagons.map(({id, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = activeHexagon === id ? "mediumseagreen" : "black";
+    const color = activeHexagon.includes(id) ? "mediumseagreen" : "black";
 
     return {id, x, y, width, height, points: points.join(' '), color};
 });
@@ -173,7 +173,7 @@ function sendCommandBlocks() {
         return result;
     }).catch(error => {
         $message = error;
-        activeHexagon = -1;
+        activeHexagon = [-1];
         throw error;
     });
 }
@@ -189,15 +189,14 @@ function findActiveHexagons(e) {
         const yDist = (y - e.offsetY);
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
-            activeHexagon = drawableHexagons[i].id;
+            activeHexagon = [drawableHexagons[i].id];
             buildCommandBlocks(activeHexagon);
             sendCommandBlocks();
         }
     }
 }
 
-function handleTouchStart(e) { 
-    // console.log("touch start");
+async function handleTouchStart(e) { 
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     mouseDown = true;
@@ -209,7 +208,7 @@ function handleTouchStart(e) {
     }
 }
 
-function handleTouchMove(e) {
+async function handleTouchMove(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     clearInterval(resendCommand);
@@ -226,55 +225,78 @@ function handleTouchMove(e) {
         pendingTimeout = setTimeout(() => {resendCommand = setInterval(findActiveHexagons, 500, e)}, 500);
     }
 }
-function handleTouchEnd(e) {
+async function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     Xend = e.offsetX;
     Yend = e.offsetY;
     clearInterval(resendCommand);
+    mouseDown = false;
+    activeHexagon = [-1];
     if (isPreset) {
         let temp = $OP_Mode;
         if (presetName == "sweep") {
             if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                     console.log('LR');
                     $OP_Mode = parseInt("0x86",16);
+                    display_preset("sweep-LR");
             } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                     console.log('RL');
                     $OP_Mode = parseInt("0x87",16);
+                    display_preset("sweep-RL");
             } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                     console.log('TB');
                     $OP_Mode = parseInt("0x88",16);
+                    display_preset("sweep-TB");
             } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                     console.log('BT');
                     $OP_Mode = parseInt("0x89",16);
+                    display_preset("sweep-BT");
             } else if (deltaX > 0 && deltaY < 0) {
                     console.log('+45BT');
                     $OP_Mode = parseInt("0x8a",16);
+                    display_preset("sweep+45BT");
             } else if (deltaX < 0 && deltaY > 0) {
                     console.log('+45TB');
                     $OP_Mode = parseInt("0x8b",16);
+                    display_preset("sweep+45TB");
             } else if (deltaX < 0 && deltaY < 0) {
                     console.log('-45BT');
                     $OP_Mode = parseInt("0x8c",16);
+                    display_preset("sweep-45BT");
             } else if (deltaX > 0 && deltaY > 0) {
                     console.log('-45TB');
                     $OP_Mode = parseInt("0x8d",16);
+                    display_preset("sweep-45TB");
             }
         } else if (presetName == "FlashAll") {
             $OP_Mode = parseInt("0x80",16);
+            display_preset("flashall");
         }
-        
         sendCommandBlocks();
         $OP_Mode = temp;
     }
-    mouseDown = false;
-    activeHexagon = -1;
 }
 
+async function display_preset(name) {
+    for (let item of $preset_display) {
+        if (name == item.name) {
+            for (let a of item.array) {
+                activeHexagon = a;
+                await sleep(500);
+            }
+        }
+    }
+    activeHexagon = [-1];
+}
+
+const sleep = (milliseconds) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
 
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:pendingTimeout/>
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
 <div class="col-5">
     <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
