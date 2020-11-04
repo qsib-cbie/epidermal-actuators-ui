@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 
@@ -8,6 +8,8 @@ export let test_ui = false;
 export let activeHexagon = -1;
 export let orientation = "horizontal";
 export let arraySize = "normal";
+export let isPreset = false;
+export let presetName = "";
 
 let Com;
 let pendingTimeout;
@@ -21,7 +23,14 @@ let moveable;
 $: mouseDown = false;
 $: rotation = 30;
 
-const frame = {rotate: 0,};
+$: Xstart = 0;
+$: Ystart = 0;
+$: Xend = 0;
+$: Yend = 0;
+$: deltaX = Xend - Xstart;
+$: deltaY = Yend - Ystart;
+
+const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 function getBytesForActuator(actuator) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
@@ -200,7 +209,44 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-
+    Xend = e.offsetX;
+    Yend = e.offsetY;
+    clearInterval(resendCommand);
+    if (isPreset) {
+        let temp = $OP_Mode;
+        if (presetName == "sweep") {
+            if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                    console.log('LR');
+                    $OP_Mode = parseInt("0x86",16);
+            } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                    console.log('RL');
+                    $OP_Mode = parseInt("0x87",16);
+            } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                    console.log('TB');
+                    $OP_Mode = parseInt("0x88",16);
+            } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
+                    console.log('BT');
+                    $OP_Mode = parseInt("0x89",16);
+            } else if (deltaX > 0 && deltaY < 0) {
+                    console.log('+45BT');
+                    $OP_Mode = parseInt("0x8a",16);
+            } else if (deltaX < 0 && deltaY > 0) {
+                    console.log('+45TB');
+                    $OP_Mode = parseInt("0x8b",16);
+            } else if (deltaX < 0 && deltaY < 0) {
+                    console.log('-45BT');
+                    $OP_Mode = parseInt("0x8c",16);
+            } else if (deltaX > 0 && deltaY > 0) {
+                    console.log('-45TB');
+                    $OP_Mode = parseInt("0x8d",16);
+            }
+        } else if (presetName == "FlashAll") {
+            $OP_Mode = parseInt("0x80",16);
+        }
+        
+        sendCommandBlocks();
+        $OP_Mode = temp;
+    }
     mouseDown = false;
     activeHexagon = -1;
 }
