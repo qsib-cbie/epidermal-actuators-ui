@@ -199,19 +199,36 @@ function handleTouchMove(e) {
         if(euclidianDistSquared < radiusSquared) {
             activeHexagon = drawableHexagons[i].id;
             buildCommandBlocks(activeHexagon);
-            (async () => {
-                return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
-            })().then(result => {
-                if(pendingTimeout) {
-                    clearTimeout(pendingTimeout);
-                }
-                pendingTimeout = setTimeout(() => { activeHexagon = -1 }, 500);
-                return result;
-            }).catch(error => {
-                message = error;
-                activeHexagon = -1;
-                throw error;
-            });
+            sendCommandBlocks();
+        }
+    }
+}
+
+function handleTouchStart(e) { 
+    // console.log("touch start");
+    if(e.stopPropagation) e.stopPropagation();
+    if(e.preventDefault) e.preventDefault();
+    mouseDown = true;
+    Xstart = e.offsetX;
+    Ystart = e.offsetY;
+    if(!isPreset) {
+        findActiveHexagons(e);
+        resendCommand = setInterval(findActiveHexagons, 500, e);
+    }
+}
+
+function handleTouchMove(e) {
+    if(e.stopPropagation) e.stopPropagation();
+    if(e.preventDefault) e.preventDefault();
+    clearInterval(resendCommand);
+    if(!mouseDown) {
+        return;
+    }
+    console.log("reset command");
+    if(!isPreset) {
+        findActiveHexagons(e);
+        if (pendingTimeout) { 
+            clearTimeout(pendingTimeout);
         }
     }
 }
@@ -313,4 +330,9 @@ on:rotate={({ detail: { target, beforeRotate }}) => {
     svg {
         cursor: draggable;
     }
+    :global(.moveable) {
+        z-index: 10;
+        display: none !important;
+    }
+
 </style>

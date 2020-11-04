@@ -68,9 +68,14 @@ $: img1 = 'images/preset_chest.png';
     .button{
         width: 100%;
         height: 100%;
+        background-color: rgb(0, 119, 255);
         background-size: 100% 100%;
         background-position: center; 
         background-repeat: no-repeat;
+        color: white;
+    }
+    .button:focus{
+        background-color: rgb(0, 183, 255);
     }
     
     .col-25 {
