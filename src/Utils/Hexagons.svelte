@@ -19,6 +19,12 @@ let success;
 let target;
 let moveable;
 
+let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
+                    {id:"stichable", text:"Stichable Hexagons"}];
+
+$: arrayType = "full";
+$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
+
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: setScaleStyle = arraySize === "small" ? "scale(0.2,0.2)" : "scale(1,1)";
@@ -117,6 +123,15 @@ const hexagons = [
   { id: 34, row: 6, col: 7 },
   { id: 35, row: 6, col: 9 },];
 
+const stichableHexagons = [
+    {id: 0, row: 0, col: 1},
+    {id: 1, row: 0, col: 3},
+    {id: 2, row: 1, col: 0},    
+    {id: 3, row: 1, col: 2},
+    {id: 4, row: 1, col: 4},
+    {id: 5, row: 2, col: 1},
+    {id: 6, row: 2, col: 3},];  
+
 const hexagonSideLength = 70;
 const globalPadding = 10;
 const baseSpacing = 15;
@@ -126,20 +141,20 @@ const width = Math.sqrt(3) * hexagonSideLength;
 const height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
-const hexagonsWithoutPixels = hexagons.map(({id, row, col}) => {
+$: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
     return {id, row, col, x, y}
 });
 
-const viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
+$: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     return {
         x: Math.max(previousValue.x, currentValue.x + (width / 2) + (globalPadding / 2)),
         y: Math.max(previousValue.y, currentValue.y + (height / 2) + (globalPadding / 2)),
     };
 });
 
-$: drawableHexagons = hexagons.map(({id, row, col}) => {
+$: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -214,47 +229,53 @@ function handleTouchEnd(e) {
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:pendingTimeout/>
 
 <div class="col-5">
+    <select bind:value={arrayType}>
+        {#each hexagonTypes as type}
+			<option value={type.id}>
+				{type.text}
+			</option>
+		{/each}
+    </select>
+    <br/>
     <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
     <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
     <input style="width: 50%" bind:value={rotation}/> &deg
     <br/>
-    <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
+    <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>    
 </div>
 
-<div class='col-50' style={setStyle}>
-    <div bind:this={target}>
-        <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-            width={`${viewBox.x}px`}
-            height={`${viewBox.y}px`}
-            viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
-            preserveAspectRatio="xMidYMid meet"
-            on:mousedown={e => handleTouchStart(e)}
-            on:mousemove={e => handleTouchMove(e)}
-            on:mouseup={e => handleTouchEnd(e)}
-            >
-            {#each drawableHexagons as hexagon}
-                <g key={`g-${hexagon.id}`}>
-                    <polygon
-                        id={`hex-${hexagon.id}`}
-                        key={`hex-${hexagon.x}-${hexagon.y}`}
-                        class="activatable"
-                        fill="none"
-                        stroke={hexagon.color}
-                        stroke-width="5px"
-                        strokeLinejoin="miter"
-                        transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
-                        points={hexagon.points} />
-                        <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                    </g>
-            {/each}
-        </svg>
-        {#if test_ui}
-            {#each hexagons as actuator}
-                <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
-            {/each}
-            <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
-        {/if}
-    </div>
+<div class='col-50' >
+    <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} 
+        width={`${viewBox.x}px`}
+        height={`${viewBox.y}px`}
+        viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
+        preserveAspectRatio="xMidYMid meet"
+        on:mousedown={e => handleTouchStart(e)}
+        on:mousemove={e => handleTouchMove(e)}
+        on:mouseup={e => handleTouchEnd(e)}    
+        >
+        {#each drawableHexagons as hexagon}
+            <g key={`g-${hexagon.id}`}>
+                <polygon
+                    id={`hex-${hexagon.id}`}
+                    key={`hex-${hexagon.x}-${hexagon.y}`}
+                    class="activatable"
+                    fill="none"
+                    stroke={hexagon.color}
+                    stroke-width="5px"
+                    strokeLinejoin="miter"
+                    transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                    points={hexagon.points} />
+                    <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                </g>
+        {/each}
+    </svg>
+    {#if test_ui}
+        {#each hexagonsLayout as actuator}
+            <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
+        {/each}
+        <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+    {/if}
 </div>
 
 <Moveable target={target} rotatable={true} throttleRotate={0} rotatePosition="top" bind:this={moveable}
