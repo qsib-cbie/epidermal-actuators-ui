@@ -2,16 +2,26 @@
 import { Router, Link, Route } from 'svelte-routing';
 import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
+import { message } from "../../stores/stores.js";
 
-$: img1 = 'images/preset_chest.png';
+let numArray = 1;
+let array = [{id:0, name:"original"}];
 
+
+function handleAddActuators() { 
+    array[numArray] = {id: numArray, name: "array "+numArray.toString(), type: "stich"};
+    numArray++;
+}
 
 </script>
 
 <Router>
     <div class="col-25">
         <h1>Automatic</h1>
+        <h2>Messages</h2>
+        <p>{$message}</p>
         <Devices />
+        <button on:click={handleAddActuators}>Add Actuators</button>
     </div>
     <div class='scroll-box'>
         <div class='option'>
