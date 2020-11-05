@@ -5,7 +5,7 @@ import Moveable from "svelte-moveable";
 
 
 export let test_ui = false;
-export let activeHexagon = [-1];
+export let activeHexagon = [];
 export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
@@ -33,27 +33,35 @@ $: deltaY = Yend - Ystart;
 
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
-function getBytesForActuator(actuator) {
+function getBytesForActuator(actuators) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
     let shiftActuator;
     let binActuator;
+    let allActuator = 0;
     const zero = '0';
-    if (actuator <= 31) {
-        shiftActuator = Math.abs(1 << actuator); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0'); 
-        binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-    } else if (actuator >= 32 && actuator < 63) {
-        shiftActuator = Math.abs(1 << (actuator - 32)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-    } else if (actuator >= 64 && actuator < 95) {
-        shiftActuator = Math.abs(1 << (actuator - 64)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-    } else if (actuator >= 96 && actuator < 127) {
-        shiftActuator = Math.abs(1 << (actuator - 96)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = binActuator + zero.repeat(96);
+    for (let actuator of actuators) {
+        if (actuator <= 31) {
+            shiftActuator = Math.abs(1 << actuator); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            console.log(binActuator);
+            binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
+        } else if (actuator >= 32 && actuator < 63) {
+            shiftActuator = Math.abs(1 << (actuator - 32)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
+        } else if (actuator >= 64 && actuator < 95) {
+            shiftActuator = Math.abs(1 << (actuator - 64)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
+        } else if (actuator >= 96 && actuator < 127) {
+            shiftActuator = Math.abs(1 << (actuator - 96)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = binActuator + zero.repeat(96);
+        }
     }
     return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
 }
@@ -173,7 +181,7 @@ function sendCommandBlocks() {
         return result;
     }).catch(error => {
         $message = error;
-        activeHexagon = [-1];
+        activeHexagon = [];
         throw error;
     });
 }
@@ -181,7 +189,7 @@ function sendCommandBlocks() {
 function findActiveHexagons(e) {
     const radius = Math.sqrt(3) * hexagonSideLength / 2;
     const radiusSquared = radius * radius;
-
+    activeHexagon = [];
     for(var i = 0; i < drawableHexagons.length; i++) {
         const x = drawableHexagons[i].x;
         const y = drawableHexagons[i].y;
@@ -189,11 +197,11 @@ function findActiveHexagons(e) {
         const yDist = (y - e.offsetY);
         const euclidianDistSquared = xDist * xDist + yDist * yDist;
         if(euclidianDistSquared < radiusSquared) {
-            activeHexagon = [drawableHexagons[i].id];
+            activeHexagon = [...activeHexagon, drawableHexagons[i].id];
             buildCommandBlocks(activeHexagon);
-            sendCommandBlocks();
         }
     }
+    sendCommandBlocks();
 }
 
 async function handleTouchStart(e) { 
@@ -232,7 +240,7 @@ async function handleTouchEnd(e) {
     Yend = e.offsetY;
     clearInterval(resendCommand);
     mouseDown = false;
-    activeHexagon = [-1];
+    activeHexagon = [];
     if (isPreset) {
         let temp = $OP_Mode;
         if (presetName == "sweep") {
@@ -287,7 +295,7 @@ async function display_preset(name) {
             }
         }
     }
-    activeHexagon = [-1];
+    activeHexagon = [];
 }
 
 const sleep = (milliseconds) => {
