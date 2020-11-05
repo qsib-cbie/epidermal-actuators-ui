@@ -7,6 +7,7 @@ import { message } from "../../stores/stores.js";
 let numArray = 1;
 let array = [{id:0, name:"original"}];
 
+$: img1 = "images/preset_chest.png";
 
 function handleAddActuators() { 
     array[numArray] = {id: numArray, name: "array "+numArray.toString(), type: "stich"};
@@ -25,11 +26,19 @@ function handleAddActuators() {
     </div>
     <div class='scroll-box'>
         <div class='option'>
-            <!-- Option 1 is default -->
-            <Link to="/"><div class="button" style="background-image:url({img1});"></div></Link>
+            <!-- Option 1 is default <div class="button" style="background-image:url({img1});"></div>  -->
+            <Link to="/"><button style="width: 100%;
+        height: 100%;
+        background-image:url({img1});
+        background-color: rgb(0, 119, 255);
+        background-size: 100% 100%;
+        background-position: center; 
+        background-repeat: no-repeat;
+        color: white;"><Hexagons arraySize="small" isPreset= true/></button></Link>
         </div>
         <div class='option' >
-            <Link to="OP2"><button class="button">Option 2</button></Link>
+            <Link to="OP2"><button class="button">Option 2 </button></Link> 
+            <!-- <Hexagons arraySize="small" orientation="vertical"/> -->
         </div>
         <div class='option' >
             <Link to="OP3"><button class="button">Option 3</button></Link>
@@ -37,13 +46,21 @@ function handleAddActuators() {
     </div>
 
     <Route path="/">
-        <Hexagons/>
+        <!-- backgroundAsset={img1} -->
+        <div class="col-50">
+            <Hexagons />
+        </div>
     </Route>
     <Route path="OP2">
-        <Hexagons orientation="vertical"/>
+        <div class="col-50">
+            <Hexagons orientation="vertical"/>
+        </div>
+        
     </Route>
     <Route path="OP3">
-        <Hexagons/>
+        <div class="col-50">
+            <Hexagons />
+        </div>
     </Route>
 </Router>
 
@@ -78,6 +95,7 @@ function handleAddActuators() {
     .button{
         width: 100%;
         height: 100%;
+        background-image:url({img1});
         background-color: rgb(0, 119, 255);
         background-size: 100% 100%;
         background-position: center; 
@@ -98,4 +116,14 @@ function handleAddActuators() {
         margin: 0px auto;
         padding: 1em;
     } 
+    .col-50 {
+        width: 50%;
+        height: 100%;
+
+        display: inline-block;
+        vertical-align: middle;
+
+        margin: 0em auto;
+        padding: 1em;
+    }
 </style>

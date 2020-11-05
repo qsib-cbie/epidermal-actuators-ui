@@ -9,6 +9,10 @@ export let activeHexagon = -1;
 export let message = 'starting ...';
 export let orientation = "horizontal";
 export let arraySize = "normal";
+export let isPreset = false;
+export let presetName = "";
+export let backgroundAsset = "";
+export let className = "col-50";
 
 let Com;
 let pendingTimeout;
@@ -27,7 +31,9 @@ $: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
 
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
-$: setScaleStyle = arraySize === "small" ? "scale(0.2,0.2)" : "scale(1,1)";
+$: setScaleStyle = arraySize === "small" ? "scale(.1,.1)" : "scale(1,1)";
+$: view_scale = arraySize === "small" ? .5 : 1;
+$: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
 $: setStyle = "transform: "+setRotationstyle+setScaleStyle+";";
 
 $: mouseDown = false;
@@ -40,22 +46,29 @@ function getBytesForActuator(actuator) {
     let shiftActuator;
     let binActuator;
     const zero = '0';
-    if (actuator <= 31) {
-        shiftActuator = Math.abs(1 << actuator); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0'); 
-        binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-    } else if (actuator >= 32 && actuator < 63) {
-        shiftActuator = Math.abs(1 << (actuator - 32)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-    } else if (actuator >= 64 && actuator < 95) {
-        shiftActuator = Math.abs(1 << (actuator - 64)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-    } else if (actuator >= 96 && actuator < 127) {
-        shiftActuator = Math.abs(1 << (actuator - 96)); 
-        binActuator = shiftActuator.toString(2).padStart(32,'0');
-        binActuator = binActuator + zero.repeat(96);
+    for (let actuator of actuators) {
+        if (actuator <= 31) {
+            shiftActuator = Math.abs(1 << actuator); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            // console.log(binActuator);
+            binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
+        } else if (actuator >= 32 && actuator < 63) {
+            shiftActuator = Math.abs(1 << (actuator - 32)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
+        } else if (actuator >= 64 && actuator < 95) {
+            shiftActuator = Math.abs(1 << (actuator - 64)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
+        } else if (actuator >= 96 && actuator < 127) {
+            shiftActuator = Math.abs(1 << (actuator - 96)); 
+            allActuator |= shiftActuator;
+            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
+            binActuator = binActuator + zero.repeat(96);
+        }
     }
     return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
 }
@@ -211,7 +224,7 @@ function handleTouchStart(e) {
     mouseDown = true;
     Xstart = e.offsetX;
     Ystart = e.offsetY;
-    if(!isPreset) {
+    if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         resendCommand = setInterval(findActiveHexagons, 500, e);
     }
@@ -224,8 +237,7 @@ function handleTouchMove(e) {
     if(!mouseDown) {
         return;
     }
-    console.log("reset command");
-    if(!isPreset) {
+    if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
@@ -245,54 +257,58 @@ function handleTouchEnd(e) {
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:pendingTimeout/>
 
-<div class="col-5">
-    <select bind:value={arrayType}>
-        {#each hexagonTypes as type}
-			<option value={type.id}>
-				{type.text}
-			</option>
-		{/each}
-    </select>
-    <br/>
-    <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
-    <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
-    <input style="width: 50%" bind:value={rotation}/> &deg
-    <br/>
-    <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>    
-</div>
-
-<div class='col-50' >
-    <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} 
-        width={`${viewBox.x}px`}
-        height={`${viewBox.y}px`}
-        viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
-        preserveAspectRatio="xMidYMid meet"
-        on:mousedown={e => handleTouchStart(e)}
-        on:mousemove={e => handleTouchMove(e)}
-        on:mouseup={e => handleTouchEnd(e)}    
-        >
-        {#each drawableHexagons as hexagon}
-            <g key={`g-${hexagon.id}`}>
-                <polygon
-                    id={`hex-${hexagon.id}`}
-                    key={`hex-${hexagon.x}-${hexagon.y}`}
-                    class="activatable"
-                    fill="none"
-                    stroke={hexagon.color}
-                    stroke-width="5px"
-                    strokeLinejoin="miter"
-                    transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
-                    points={hexagon.points} />
-                    <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                </g>
-        {/each}
-    </svg>
-    {#if test_ui}
-        {#each hexagonsLayout as actuator}
-            <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
-        {/each}
-        <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+<div class="full-container" style={setBackground}>
+    {#if arraySize == "normal"}
+        <div class="col-5">
+            <select bind:value={arrayType}>
+                {#each hexagonTypes as type}
+                    <option value={type.id}>
+                        {type.text}
+                    </option>
+                {/each}
+            </select>
+            <br/>
+            <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
+            <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
+            <input style="width: 50%" bind:value={rotation}/> &deg
+            <br/>
+            <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
+        </div>
     {/if}
+
+    <div class={className}>
+        <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
+            width={`${viewBox.x}px`}
+            height={`${viewBox.y}px`}
+            viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
+            preserveAspectRatio="xMidYMid meet"
+            on:mousedown={e => handleTouchStart(e)}
+            on:mousemove={e => handleTouchMove(e)}
+            on:mouseup={e => handleTouchEnd(e)}    
+            >
+            {#each drawableHexagons as hexagon}
+                <g key={`g-${hexagon.id}`}>
+                    <polygon
+                        id={`hex-${hexagon.id}`}
+                        key={`hex-${hexagon.x}-${hexagon.y}`}
+                        class="activatable"
+                        fill="none"
+                        stroke={hexagon.color}
+                        stroke-width="5px"
+                        strokeLinejoin="miter"
+                        transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                        points={hexagon.points} />
+                        <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                    </g>
+            {/each}
+        </svg>
+        {#if test_ui}
+            {#each hexagonsLayout as actuator}
+                <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
+            {/each}
+            <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+        {/if}
+    </div>
 </div>
 
 <Moveable target={target} bind:this={moveable} className="moveable"
@@ -337,7 +353,7 @@ function handleTouchEnd(e) {
 
 <style>
     .col-5 {
-        width: 7%;
+        width: 20%;
         height: 10%;
         display: inline-block;
         vertical-align: top;
@@ -347,7 +363,7 @@ function handleTouchEnd(e) {
     }
 
     .col-50 {
-        width: 40%;
+        width: 50%;
         height: 100%;
 
         display: inline-block;
@@ -360,6 +376,11 @@ function handleTouchEnd(e) {
     }
     svg {
         cursor: draggable;
+    }
+    .full-container {
+        width: 100%;
+        height: 100%;
+        vertical-align: middle;
     }
     :global(.moveable) {
         z-index: 10;

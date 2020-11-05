@@ -177,8 +177,9 @@ function setTimingBlock(config) {
                     
             </Route>
         </div>
-        <Hexagons bind:message/>
-
+        <div class="col-50">
+            <Hexagons/>
+        </div>
         
   </div>
 
@@ -199,6 +200,16 @@ function setTimingBlock(config) {
         vertical-align: top;
 
         margin: 0px auto;
+        padding: 1em;
+    }
+    .col-50 {
+        width: 50%;
+        height: 100%;
+
+        display: inline-block;
+        vertical-align: middle;
+
+        margin: 0em auto;
         padding: 1em;
     }
 
