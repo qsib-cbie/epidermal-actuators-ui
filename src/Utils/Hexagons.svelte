@@ -2,6 +2,7 @@
 import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
+import { onMount } from "svelte";
 
 
 export let test_ui = false;
@@ -14,6 +15,9 @@ export let presetName = "";
 let Com;
 let pendingTimeout;
 let resendCommand;
+let isTouch = false;
+let boundRect;
+let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -33,6 +37,8 @@ $: deltaY = Yend - Ystart;
 
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
+onMount(() => {boundRect = target.getBoundingClientRect();});
+
 function getBytesForActuator(actuators) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
     let shiftActuator;
@@ -44,7 +50,6 @@ function getBytesForActuator(actuators) {
             shiftActuator = Math.abs(1 << actuator); 
             allActuator |= shiftActuator;
             binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            console.log(binActuator);
             binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
         } else if (actuator >= 32 && actuator < 63) {
             shiftActuator = Math.abs(1 << (actuator - 32)); 
@@ -190,56 +195,89 @@ function findActiveHexagons(e) {
     const radius = Math.sqrt(3) * hexagonSideLength / 2;
     const radiusSquared = radius * radius;
     activeHexagon = [];
+    let Xpos;
+    let Ypos;
     for(var i = 0; i < drawableHexagons.length; i++) {
         const x = drawableHexagons[i].x;
         const y = drawableHexagons[i].y;
-        const xDist = (x - e.offsetX);
-        const yDist = (y - e.offsetY);
-        const euclidianDistSquared = xDist * xDist + yDist * yDist;
-        if(euclidianDistSquared < radiusSquared) {
-            activeHexagon = [...activeHexagon, drawableHexagons[i].id];
-            buildCommandBlocks(activeHexagon);
+        for (var j = 0; j < numTouches; j++) {
+            if (isTouch) {
+                Xpos = e.targetTouches[j].clientX - boundRect.left;
+                Ypos = e.targetTouches[j].clientY - boundRect.top;
+            } else{
+                Xpos = e.offsetX;
+                Ypos = e.offsetY;
+            }
+            const xDist = (x - Xpos);
+            const yDist = (y - Ypos);
+            const euclidianDistSquared = xDist * xDist + yDist * yDist;
+            if(euclidianDistSquared < radiusSquared) {
+                activeHexagon = [...activeHexagon, drawableHexagons[i].id];
+                buildCommandBlocks(activeHexagon);
+            }
         }
     }
     sendCommandBlocks();
 }
 
-async function handleTouchStart(e) { 
+function handleTouchStart(e) { 
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     mouseDown = true;
-    Xstart = e.offsetX;
-    Ystart = e.offsetY;
+    clearInterval(resendCommand);
+    clearTimeout(pendingTimeout);
+    try {
+        if (e.targetTouches.length > 0) {
+            isTouch = true;
+            numTouches = e.targetTouches.length;
+        }
+    } catch(error) { 
+        numTouches = 1;
+    }
+
+    if (isTouch) {
+        Xstart = e.targetTouches[0].clientX - boundRect.left;
+        Ystart = e.targetTouches[0].clientY - boundRect.top;
+    } else {
+        Xstart = e.offsetX;
+        Ystart = e.offsetY;
+    }
+
     if(!isPreset) {
         findActiveHexagons(e);
         resendCommand = setInterval(findActiveHexagons, 500, e);
     }
 }
 
-async function handleTouchMove(e) {
+function handleTouchMove(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    clearInterval(resendCommand);
     if(!mouseDown) {
         return;
     }
-    console.log("reset command");
+    clearInterval(resendCommand);
     if(!isPreset) {
-        // resendCommand = setInterval(findActiveHexagons, 500, e);
         findActiveHexagons(e);
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
         pendingTimeout = setTimeout(() => {resendCommand = setInterval(findActiveHexagons, 500, e)}, 500);
     }
+    if (isTouch) {
+        Xend = e.targetTouches[0].clientX - boundRect.left;
+        Yend = e.targetTouches[0].clientY - boundRect.top;
+    } else {
+        Xend = e.offsetX;
+        Yend = e.offsetY;
+    }
 }
-async function handleTouchEnd(e) {
+
+function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    Xend = e.offsetX;
-    Yend = e.offsetY;
     clearInterval(resendCommand);
     mouseDown = false;
+    isTouch = false;
     activeHexagon = [];
     if (isPreset) {
         let temp = $OP_Mode;
@@ -323,6 +361,9 @@ const sleep = (milliseconds) => {
         on:mousedown={e => handleTouchStart(e)}
         on:mousemove={e => handleTouchMove(e)}
         on:mouseup={e => handleTouchEnd(e)}
+        on:touchstart={e => handleTouchStart(e)}
+        on:touchmove={e => handleTouchMove(e)}
+        on:touchend={e => handleTouchEnd(e)}
         >
 
         {#each drawableHexagons as hexagon}
