@@ -1,13 +1,11 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block  } from "../../stores/stores"
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice } from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
 
 // MARK: Message
-$: pendingTimeout = false;
-$: message = 'starting ...';
 let Com;
 let endpoint;
 let nopRoute = '';
@@ -22,9 +20,13 @@ $: route = "api_index";
 
 $: connectionAttempt = (async () => {
     return await Com.hitEndpoint(endpoint, nopRoute, success);
-})();
+})().then(() => {
+    $message = "Connection Established";
+    });
+
 
 // MARK: Antenna Configuration
+// Add a feature to stop the RF field.
 
 $: rfPower = 4;
 $: activeRfPower = 0;
@@ -46,18 +48,20 @@ function handleClickRfPower() {
         activeRfPower = rfPower;
         antennaButtonMessage = "Configure";
         (async () => {
-            message = "Restarting System ...";
+            $message = "Restarting System ...";
             return await Com.hitEndpoint(endpoint, nopRoute, reset_command);
         })().then(result => {
-            message = "System Reset Complete"
+            $message = "System Reset Complete"
+            $devices = [];
+            $activeDevice = 0;
             return result;
         }).catch(error => {
-            message = error;
+            $message = error;
             throw error;
         });
         return result;
     }).catch(error => {
-        message = error;
+        $message = error;
         configuring = false;
         antennaButtonMessage = "Re-attempt Configure";
         throw error;
@@ -99,7 +103,7 @@ function setTimingBlock(config) {
 </script>
 
 <main>
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:hostname bind:port bind:route/>
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:hostname bind:port bind:route/>
 <Router>
 
     <div class='content-wrapper'>
@@ -107,7 +111,7 @@ function setTimingBlock(config) {
         <div class='col-25'>
             <h1>Manual Actuation</h1>
             <h2>Messages</h2>
-            <p>{message}</p>
+            <p>{$message}</p>
 
             <h2>Server Configuration</h2>
 
@@ -137,9 +141,11 @@ function setTimingBlock(config) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-            <Devices bind:message />
+            <Devices />
 
-        </div><div class='col-25'>
+        </div>
+        
+        <div class='col-25'>
             <br/><br/><br/>
             <h2>Timer Configuration</h2>
 
@@ -177,9 +183,8 @@ function setTimingBlock(config) {
                     
             </Route>
         </div>
-        <div class="col-50">
-            <Hexagons/>
-        </div>
+        <Hexagons/>
+      
         
   </div>
 

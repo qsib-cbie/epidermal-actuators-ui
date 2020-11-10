@@ -1,7 +1,4 @@
 <script>
-$: pendingTimeout = false;
-export let message = 'starting ...';
-
 
 export const nopRoute = '';
 export const success = '{ "Success": { } }';
@@ -15,8 +12,7 @@ export const endpoint = `http://${hostname}:${port}/${route}`; //needs export or
 export const hitEndpoint = async (endpoint, route, body) => {
     const response = await fetch(endpoint + route, { method: 'POST', body});
     const result = await response.json();
-    message = JSON.stringify(result);
-    return message;
+    return result;
 }
 
 </script>

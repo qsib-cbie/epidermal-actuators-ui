@@ -1,22 +1,27 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
 
 
 export let test_ui = false;
-export let activeHexagon = -1;
-export let message = 'starting ...';
+
+export let activeHexagon = [];
 export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
+
 export let backgroundAsset = "";
 export let className = "col-50";
 
 let Com;
 let pendingTimeout;
+let resendCommand;
+let isTouch = false;
+let boundRect;
+let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -51,23 +56,32 @@ $: setStyle = "transform: "+setRotationstyle+";";
 $: mouseDown = false;
 $: rotation = 30;
 
+
+$: Xstart = 0;
+$: Ystart = 0;
+$: Xend = 0;
+$: Yend = 0;
+$: deltaX = Xend - Xstart;
+$: deltaY = Yend - Ystart;
+
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 onMount(() => {
-    window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
-});
+  window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;
+  boundRect = target.getBoundingClientRect();
+  });
 
 function getBytesForActuator(actuators) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
     let shiftActuator;
     let binActuator;
+    let allActuator = 0;
     const zero = '0';
     for (let actuator of actuators) {
         if (actuator <= 31) {
             shiftActuator = Math.abs(1 << actuator); 
             allActuator |= shiftActuator;
             binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            // console.log(binActuator);
             binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
         } else if (actuator >= 32 && actuator < 63) {
             shiftActuator = Math.abs(1 << (actuator - 32)); 
@@ -91,10 +105,10 @@ function getBytesForActuator(actuators) {
 
 function buildCommandBlocks(active) {
     const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
-    block0_31.set([b0_0, b0_1, b0_2, b0_3]);
-    block32_63.set([b1_0, b1_1, b1_2, b1_3]);
-    block64_95.set([b2_0, b2_1, b2_2, b2_3]);
-    block96_127.set([b3_0, b3_1, b3_2, b3_3]);
+    block0_31.set([parseInt(b0_0,2), parseInt(b0_1,2), parseInt(b0_2,2), parseInt(b0_3,2)]);
+    block32_63.set([parseInt(b1_0,2), parseInt(b1_1,2), parseInt(b1_2,2), parseInt(b1_3,2)]);
+    block64_95.set([parseInt(b2_0,2), parseInt(b2_1,2), parseInt(b2_2,2), parseInt(b2_3,2)]);
+    block96_127.set([parseInt(b3_0,2), parseInt(b3_1,2), parseInt(b3_2,2), parseInt(b3_3,2)]);
 
 }
 
@@ -198,19 +212,79 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = activeHexagon === id ? "mediumseagreen" : "black";
+    const color = activeHexagon.includes(id) ? "mediumseagreen" : "black";
 
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
+function sendCommandBlocks() {
+    (async () => {
+        return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
+    })().then(result => {
+        if (result.hasOwnProperty('Failure')) {
+            $message = result['Failure']['message']; 
+        } 
+        return result;
+    }).catch(error => {
+        $message = error;
+        activeHexagon = [];
+        throw error;
+    });
+}
+
+function findActiveHexagons(e) {
+    const radius = Math.sqrt(3) * hexagonSideLength / 2;
+    const radiusSquared = radius * radius;
+    activeHexagon = [];
+    let Xpos;
+    let Ypos;
+    for(var i = 0; i < drawableHexagons.length; i++) {
+        const x = drawableHexagons[i].x;
+        const y = drawableHexagons[i].y;
+        for (var j = 0; j < numTouches; j++) {
+            if (isTouch) {
+                Xpos = e.targetTouches[j].clientX - boundRect.left;
+                Ypos = e.targetTouches[j].clientY - boundRect.top;
+            } else{
+                Xpos = e.offsetX;
+                Ypos = e.offsetY;
+            }
+            const xDist = (x - Xpos);
+            const yDist = (y - Ypos);
+            const euclidianDistSquared = xDist * xDist + yDist * yDist;
+            if(euclidianDistSquared < radiusSquared) {
+                activeHexagon = [...activeHexagon, drawableHexagons[i].id];
+                buildCommandBlocks(activeHexagon);
+            }
+        }
+    }
+    sendCommandBlocks();
+}
 
 function handleTouchStart(e) { 
     // console.log("touch start");
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     mouseDown = true;
-    Xstart = e.offsetX;
-    Ystart = e.offsetY;
+    clearInterval(resendCommand);
+    clearTimeout(pendingTimeout);
+    try {
+        if (e.targetTouches.length > 0) {
+            isTouch = true;
+            numTouches = e.targetTouches.length;
+        }
+    } catch(error) { 
+        numTouches = 1;
+    }
+
+    if (isTouch) {
+        Xstart = e.targetTouches[0].clientX - boundRect.left;
+        Ystart = e.targetTouches[0].clientY - boundRect.top;
+    } else {
+        Xstart = e.offsetX;
+        Ystart = e.offsetY;
+    }
+
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         resendCommand = setInterval(findActiveHexagons, 500, e);
@@ -220,29 +294,97 @@ function handleTouchStart(e) {
 function handleTouchMove(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    clearInterval(resendCommand);
     if(!mouseDown) {
         return;
     }
+    clearInterval(resendCommand);
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(findActiveHexagons, 500, e)}, 500);
+    }
+    if (isTouch) {
+        Xend = e.targetTouches[0].clientX - boundRect.left;
+        Yend = e.targetTouches[0].clientY - boundRect.top;
+    } else {
+        Xend = e.offsetX;
+        Yend = e.offsetY;
     }
 }
+
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-
+    clearInterval(resendCommand);
     mouseDown = false;
-    activeHexagon = -1;
+    isTouch = false;
+    activeHexagon = [];
+    if (isPreset) {
+        let temp = $OP_Mode;
+        if (presetName == "sweep") {
+            if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                    console.log('LR');
+                    $OP_Mode = parseInt("0x86",16);
+                    display_preset("sweep-LR");
+            } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                    console.log('RL');
+                    $OP_Mode = parseInt("0x87",16);
+                    display_preset("sweep-RL");
+            } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                    console.log('TB');
+                    $OP_Mode = parseInt("0x88",16);
+                    display_preset("sweep-TB");
+            } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
+                    console.log('BT');
+                    $OP_Mode = parseInt("0x89",16);
+                    display_preset("sweep-BT");
+            } else if (deltaX > 0 && deltaY < 0) {
+                    console.log('+45BT');
+                    $OP_Mode = parseInt("0x8a",16);
+                    display_preset("sweep+45BT");
+            } else if (deltaX < 0 && deltaY > 0) {
+                    console.log('+45TB');
+                    $OP_Mode = parseInt("0x8b",16);
+                    display_preset("sweep+45TB");
+            } else if (deltaX < 0 && deltaY < 0) {
+                    console.log('-45BT');
+                    $OP_Mode = parseInt("0x8c",16);
+                    display_preset("sweep-45BT");
+            } else if (deltaX > 0 && deltaY > 0) {
+                    console.log('-45TB');
+                    $OP_Mode = parseInt("0x8d",16);
+                    display_preset("sweep-45TB");
+            }
+        } else if (presetName == "FlashAll") {
+            $OP_Mode = parseInt("0x80",16);
+            display_preset("flashall");
+        }
+        sendCommandBlocks();
+        $OP_Mode = temp;
+    }
 }
 
+async function display_preset(name) {
+    for (let item of $preset_display) {
+        if (name == item.name) {
+            for (let a of item.array) {
+                activeHexagon = a;
+                await sleep(500);
+            }
+        }
+    }
+    activeHexagon = [];
+}
+
+const sleep = (milliseconds) => {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
 
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message bind:pendingTimeout/>
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
 <div class="full-container" style={setBackground}>
     {#if arraySize == "normal"}

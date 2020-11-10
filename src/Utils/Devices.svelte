@@ -1,12 +1,11 @@
 <script>
 import Communication from "./Communication.svelte";
-import { activeDevice, devices } from "../../stores/stores"
+import { activeDevice, devices, message } from "../../stores/stores"
 
 let Com;
 let endpoint;
 let nopRoute;
 let success;
-$: message = 'starting ...';
 $: add_device_command = `{ "AddFabric": { "fabric_name": "${newDevice}" } }`;
 $: remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[$activeDevice]}" } }`;
 $: newDevice = "Device0";
@@ -20,13 +19,19 @@ function handleClickDevice() {
         searching = true;
         deviceButtonMessage = "Searching ...";
         return await Com.hitEndpoint(endpoint, nopRoute, add_device_command);
-    })().then(() => {
+    })().then((result) => {
         searching = false;
+        if (result.hasOwnProperty('Failure')){
+            deviceButtonMessage = "Re-attempt Search";
+            $message = result['Failure']['message'];
+        }else{
+        $message = "Connected to new Device"; 
         $devices = [...$devices, newDevice];
         deviceButtonMessage = "Find";
+        }
     }).catch(error => {
         searching = false;
-        message = error;
+        $message = error;
         deviceButtonMessage = "Re-attempt Search";
     });
 }
@@ -40,10 +45,11 @@ function handleClickRemove(idx) {
             if(idx <= $activeDevice && $activeDevice != 0) {
             activeDevice.update(n => n - 1)
             }
-            $devices = $devices.filter(n => n !== $devices[idx]);    
+            $devices = $devices.filter(n => n !== $devices[idx]);  
+            $message = "Removed Device";
         }).catch(error => {
             console.log(error);
-            message = error;
+            $message = error;
         });
     }
 }
@@ -55,7 +61,7 @@ function handleClickActive(idx) {
 }
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:message/>
+<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
 <h2>Addressable Devices</h2>
 
