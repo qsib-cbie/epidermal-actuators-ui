@@ -81,7 +81,7 @@ $: single_pulse_duration = 500; //low priority
 
 
 $: $single_pulse_block = [0,0,0,0];
-
+//set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
 $: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
 
@@ -184,7 +184,7 @@ function setTimingBlock(config) {
             </Route>
         </div>
         <Hexagons/>
-
+      
         
   </div>
 
@@ -198,13 +198,23 @@ function setTimingBlock(config) {
     }
 
     .col-25 {
-        width: 20%;
+        width: 18%;
         height: 100%;
 
         display: inline-block;
         vertical-align: top;
 
         margin: 0px auto;
+        padding: 1em;
+    }
+    .col-50 {
+        width: 50%;
+        height: 100%;
+
+        display: inline-block;
+        vertical-align: middle;
+
+        margin: 0em auto;
         padding: 1em;
     }
 
