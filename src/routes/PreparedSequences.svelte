@@ -29,13 +29,19 @@
         <!-- {#each array as arr}
             <svelte:component this={Hexagons} objAttributes={arr}/>
         {/each} -->
-        <Hexagons isPreset = true presetName="FlashAll"/>
+        <div class="col-50">
+            <Hexagons isPreset = true presetName="FlashAll"/>
+        </div>
     </Route>
     <Route path="OP2">
-        <Hexagons isPreset = true presetName="sweep"/>
+        <div class="col-50">
+            <Hexagons isPreset = true presetName="sweep"/>
+        </div>
     </Route>
     <Route path="OP3">
-        <Hexagons isPreset = true/>
+        <div class="col-50">
+            <Hexagons isPreset = true/>
+        </div>
     </Route>
 </Router>
 
@@ -89,4 +95,14 @@
         margin: 0px auto;
         padding: 1em;
     } 
+    .col-50 {
+        width: 50%;
+        height: 100%;
+
+        display: inline-block;
+        vertical-align: middle;
+
+        margin: 0em auto;
+        padding: 1em;
+    }
 </style>
