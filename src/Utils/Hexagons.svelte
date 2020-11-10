@@ -2,6 +2,7 @@
 import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
+import { onMount } from "svelte";
 
 
 export let test_ui = false;
@@ -10,6 +11,8 @@ export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
+export let backgroundAsset = "";
+export let className = "col-50";
 
 let Com;
 let pendingTimeout;
@@ -17,9 +20,33 @@ let resendCommand;
 let endpoint;
 let nopRoute;
 let success;
-
+let winWidth = window.innerWidth;
+let winHeight = window.innerHeight;
+let initialHeight = window.innerHeight;
+let initialWidth = window.innerWidth;
+let strokeWidth;
 let target;
 let moveable;
+let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
+                    {id:"stichable", text:"Stichable Hexagons"}];
+
+$: arrayType = "full";
+$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
+$: view_scale = 1;
+$: initialRotation = orientation === "horizontal" ? 0 : -90;
+$: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
+$: {
+    console.log((winWidth/initialWidth)* (winHeight/initialHeight));
+    if (arraySize == "small") {
+        view_scale = .05;
+        strokeWidth = "1px";
+    }else {
+        view_scale = (winWidth/initialWidth)*(winHeight/initialHeight);
+        strokeWidth = "5px";
+    }
+   }
+$: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
+$: setStyle = "transform: "+setRotationstyle+";";
 
 $: mouseDown = false;
 $: rotation = 30;
@@ -32,6 +59,10 @@ $: deltaX = Xend - Xstart;
 $: deltaY = Yend - Ystart;
 
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
+
+onMount(() => {
+    window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
+});
 
 function getBytesForActuator(actuators) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
@@ -129,29 +160,38 @@ const hexagons = [
   { id: 34, row: 6, col: 7 },
   { id: 35, row: 6, col: 9 },];
 
-const hexagonSideLength = 70;
+const stichableHexagons = [
+    {id: 0, row: 0, col: 1},
+    {id: 1, row: 0, col: 3},
+    {id: 2, row: 1, col: 0},    
+    {id: 3, row: 1, col: 2},
+    {id: 4, row: 1, col: 4},
+    {id: 5, row: 2, col: 1},
+    {id: 6, row: 2, col: 3},];  
+
+$: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
-const baseSpacing = 15;
-const horizontalSpacing = baseSpacing;
-const verticalSpacing = 1.5 * baseSpacing;
-const width = Math.sqrt(3) * hexagonSideLength;
-const height = 2 * hexagonSideLength;
+$: baseSpacing = 15*view_scale;
+$: horizontalSpacing = baseSpacing;
+$: verticalSpacing = 1.5 * baseSpacing;
+$: width = Math.sqrt(3) * hexagonSideLength;
+$: height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
-const hexagonsWithoutPixels = hexagons.map(({id, row, col}) => {
+$: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
     return {id, row, col, x, y}
 });
 
-const viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
+$: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     return {
         x: Math.max(previousValue.x, currentValue.x + (width / 2) + (globalPadding / 2)),
         y: Math.max(previousValue.y, currentValue.y + (height / 2) + (globalPadding / 2)),
     };
 });
 
-$: drawableHexagons = hexagons.map(({id, row, col}) => {
+$: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -314,41 +354,41 @@ const sleep = (milliseconds) => {
     <button on:click={() => moveable.request("rotatable",{rotate: 0}, true)}>Reset</button>
 </div>
 
-<div class='col-50' bind:this={target}>
-    <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
-        width={`${viewBox.x}px`}
-        height={`${viewBox.y}px`}
-        viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
-        preserveAspectRatio="xMidYMid meet"
-        on:mousedown={e => handleTouchStart(e)}
-        on:mousemove={e => handleTouchMove(e)}
-        on:mouseup={e => handleTouchEnd(e)}
-        >
-
-        {#each drawableHexagons as hexagon}
-            <g key={`g-${hexagon.id}`}>
-                <polygon
-                    id={`hex-${hexagon.id}`}
-                    key={`hex-${hexagon.x}-${hexagon.y}`}
-                    class="activatable"
-                    fill="none"
-                    stroke={hexagon.color}
-                    stroke-width="5px"
-                    strokeLinejoin="miter"
-                    transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
-                    points={hexagon.points} />
-                    <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                </g>
-        {/each}
-    </svg>
-    {#if test_ui}
-        {#each hexagons as actuator}
-            <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
-        {/each}
-        <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
-
-    {/if}
-</div>
+    <div class={className}>
+        <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
+            width={`${viewBox.x}px`}
+            height={`${viewBox.y}px`}
+            viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
+            preserveAspectRatio="xMidYMid meet"
+            on:mousedown={e => handleTouchStart(e)}
+            on:mousemove={e => handleTouchMove(e)}
+            on:mouseup={e => handleTouchEnd(e)}    
+            >
+            {#each drawableHexagons as hexagon}
+                <g key={`g-${hexagon.id}`}>
+                    <polygon
+                        id={`hex-${hexagon.id}`}
+                        key={`hex-${hexagon.x}-${hexagon.y}`}
+                        class="activatable"
+                        fill="none"
+                        stroke={hexagon.color}
+                        stroke-width={strokeWidth}
+                        strokeLinejoin="miter"
+                        transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
+                        points={hexagon.points} />
+                        {#if arraySize == "normal"}
+                            <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                        {/if}
+                    </g>
+            {/each}
+        </svg>
+        {#if test_ui}
+            {#each hexagonsLayout as actuator}
+                <button on:click={buildCommandBlocks(actuator.id)}> Button {actuator.id}</button>
+            {/each}
+            <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
+        {/if}
+    </div>
 
 <Moveable target={target} rotatable={true} throttleRotate={0} rotatePosition="top" bind:this={moveable}
 on:rotateStart={({ detail: {set}}) => {set(frame.rotate);}}
