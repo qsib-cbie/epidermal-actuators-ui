@@ -2,6 +2,7 @@
 import { block0_31, block32_63, block64_95, block96_127, act_command } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
+import { onMount } from "svelte";
 
 
 export let test_ui = false;
@@ -19,29 +20,44 @@ let pendingTimeout;
 let endpoint;
 let nopRoute;
 let success;
-
+let winWidth = window.innerWidth;
+let winHeight = window.innerHeight;
+let initialHeight = window.innerHeight;
+let initialWidth = window.innerWidth;
+let strokeWidth;
 let target;
 let moveable;
-
 let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
                     {id:"stichable", text:"Stichable Hexagons"}];
 
 $: arrayType = "full";
 $: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
-
+$: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
-$: setScaleStyle = arraySize === "small" ? "scale(.1,.1)" : "scale(1,1)";
-$: view_scale = arraySize === "small" ? .5 : 1;
+$: {
+    console.log((winWidth/initialWidth)* (winHeight/initialHeight));
+    if (arraySize == "small") {
+        view_scale = .05;
+        strokeWidth = "1px";
+    }else {
+        view_scale = (winWidth/initialWidth)*(winHeight/initialHeight);
+        strokeWidth = "5px";
+    }
+   }
 $: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
-$: setStyle = "transform: "+setRotationstyle+setScaleStyle+";";
+$: setStyle = "transform: "+setRotationstyle+";";
 
 $: mouseDown = false;
 $: rotation = 30;
 
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
-function getBytesForActuator(actuator) {
+onMount(() => {
+    window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
+});
+
+function getBytesForActuator(actuators) {
     /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
     let shiftActuator;
     let binActuator;
@@ -145,13 +161,13 @@ const stichableHexagons = [
     {id: 5, row: 2, col: 1},
     {id: 6, row: 2, col: 3},];  
 
-const hexagonSideLength = 70;
+$: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
-const baseSpacing = 15;
-const horizontalSpacing = baseSpacing;
-const verticalSpacing = 1.5 * baseSpacing;
-const width = Math.sqrt(3) * hexagonSideLength;
-const height = 2 * hexagonSideLength;
+$: baseSpacing = 15*view_scale;
+$: horizontalSpacing = baseSpacing;
+$: verticalSpacing = 1.5 * baseSpacing;
+$: width = Math.sqrt(3) * hexagonSideLength;
+$: height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
 $: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
@@ -187,35 +203,6 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function handleTouchStart(e) { 
-    if(e.stopPropagation) e.stopPropagation();
-    if(e.preventDefault) e.preventDefault();
-    mouseDown = true;
-}
-function handleTouchMove(e) {
-    if(e.stopPropagation) e.stopPropagation();
-    if(e.preventDefault) e.preventDefault();
-
-    if(!mouseDown) {
-        return;
-    }
-
-    const radius = Math.sqrt(3) * hexagonSideLength / 2;
-    const radiusSquared = radius * radius;
-
-    for(var i = 0; i < drawableHexagons.length; i++) {
-        const x = drawableHexagons[i].x;
-        const y = drawableHexagons[i].y;
-        const xDist = (x - e.offsetX);
-        const yDist = (y - e.offsetY);
-        const euclidianDistSquared = xDist * xDist + yDist * yDist;
-        if(euclidianDistSquared < radiusSquared) {
-            activeHexagon = drawableHexagons[i].id;
-            buildCommandBlocks(activeHexagon);
-            sendCommandBlocks();
-        }
-    }
-}
 
 function handleTouchStart(e) { 
     // console.log("touch start");
@@ -294,11 +281,13 @@ function handleTouchEnd(e) {
                         class="activatable"
                         fill="none"
                         stroke={hexagon.color}
-                        stroke-width="5px"
+                        stroke-width={strokeWidth}
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                        {#if arraySize == "normal"}
+                            <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
+                        {/if}
                     </g>
             {/each}
         </svg>
