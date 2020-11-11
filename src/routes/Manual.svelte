@@ -80,7 +80,7 @@ $: hfDutyCycle = 50;
 $: single_pulse_duration = 500; //low priority
 
 
-$: $single_pulse_block = [0,0,0,0];
+$: $single_pulse_block = [single_pulse_duration & 0x000000ff,(single_pulse_duration & 0x0000ff00) >> 8,0,0];
 //set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
 $: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
