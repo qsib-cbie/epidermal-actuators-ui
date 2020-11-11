@@ -67,40 +67,20 @@ $: deltaY = Yend - Ystart;
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 onMount(() => {
-  window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;
+  window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
   boundRect = target.getBoundingClientRect();
   });
 
 function getBytesForActuator(actuators) {
-    /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
-    let shiftActuator;
-    let binActuator;
-    let allActuator = 0;
-    const zero = '0';
+    /*Passed array of active actuators, Returns Array of 16 with decimal representation of binary location of actuator
+    (EX: 3rd actuator => 0b00001000) => 8 in first blockByte */
+    let blockBytes = [...Array(16).keys()].map(i => 0);
     for (let actuator of actuators) {
-        if (actuator <= 31) {
-            shiftActuator = Math.abs(1 << actuator); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-        } else if (actuator >= 32 && actuator < 63) {
-            shiftActuator = Math.abs(1 << (actuator - 32)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-        } else if (actuator >= 64 && actuator < 95) {
-            shiftActuator = Math.abs(1 << (actuator - 64)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-        } else if (actuator >= 96 && actuator < 127) {
-            shiftActuator = Math.abs(1 << (actuator - 96)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = binActuator + zero.repeat(96);
-        }
+        const block  = Math.floor((actuator) / 32);
+        const blockByte = Math.floor(((actuator) % 32) / 8);
+  	    blockBytes[((block*32)/8) + blockByte] |= (Math.abs(1 << (actuator-(blockByte*8))));
     }
-    return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
+    return blockBytes;
 }
 
 function buildCommandBlocks(active) {
@@ -319,6 +299,7 @@ function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     clearInterval(resendCommand);
+    clearTimeout(pendingTimeout);
     mouseDown = false;
     isTouch = false;
     activeHexagon = [];
@@ -415,6 +396,9 @@ const sleep = (milliseconds) => {
             on:mousedown={e => handleTouchStart(e)}
             on:mousemove={e => handleTouchMove(e)}
             on:mouseup={e => handleTouchEnd(e)}    
+            on:touchstart={e => handleTouchStart(e)}
+            on:touchmove={e => handleTouchMove(e)}
+            on:touchend={e => handleTouchEnd(e)}
             >
             {#each drawableHexagons as hexagon}
                 <g key={`g-${hexagon.id}`}>
