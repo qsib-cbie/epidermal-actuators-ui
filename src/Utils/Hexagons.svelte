@@ -217,13 +217,15 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function sendCommandBlocks() {
+export function sendCommandBlocks() {
     (async () => {
         return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
-        } 
+        } else {
+            $message = "Sent Command Successfully";
+        }
         return result;
     }).catch(error => {
         $message = error;
