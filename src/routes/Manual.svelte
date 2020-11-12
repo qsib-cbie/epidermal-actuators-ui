@@ -4,6 +4,7 @@ import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice,
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
+import { onMount } from "svelte";
 
 // MARK: Message
 let Com;
@@ -11,6 +12,7 @@ let Hex;
 let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
+let configContent;
 
 
 // MARK: Server Configuration
@@ -106,7 +108,16 @@ function setTimingBlock(config) {
         lfDutyCycle = 100;           
     }
 }
-
+onMount(() => {
+    configContent.style.display = "block";
+});
+function handleCollapse() {
+    if (configContent.style.display === "block") {
+        configContent.style.display = "none";
+    } else {
+        configContent.style.display = "block";
+    }
+}
 </script>
 
 <main>
@@ -120,8 +131,9 @@ function setTimingBlock(config) {
             <h2>Messages</h2>
             <p>{$message}</p>
 
-            <h2>Server Configuration</h2>
 
+            <button class="collapsible" on:click={handleCollapse}><h2>Server Configuration</h2></button>
+            <div class="content" bind:this={configContent}>
             <label for="hostname"> Hostname </label> <input bind:value={hostname} />
             <label for="port"> Port </label> <input bind:value={port} />
             <label for="route"> Route </label> <input bind:value={route} />
@@ -133,7 +145,7 @@ function setTimingBlock(config) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-
+            </div>    
             <h2>Antenna Configuration</h2>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />

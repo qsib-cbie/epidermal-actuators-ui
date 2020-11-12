@@ -7,7 +7,7 @@ let Com;
 let endpoint;
 let nopRoute;
 let success;
-let content;
+let collapseContent;
 $: add_device_command = `{ "AddFabric": { "fabric_name": "${newDevice}" } }`;
 $: remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[$activeDevice]}" } }`;
 $: newDevice = "Device0";
@@ -63,13 +63,13 @@ function handleClickActive(idx) {
 }
 
 onMount(() => {
-    content.style.display = "block";
+    collapseContent.style.display = "block";
 });
 function handleCollapse() {
-    if (content.style.display === "block") {
-        content.style.display = "none";
+    if (collapseContent.style.display === "block") {
+        collapseContent.style.display = "none";
     } else {
-        content.style.display = "block";
+        collapseContent.style.display = "block";
     }
 }
 </script>
@@ -77,7 +77,7 @@ function handleCollapse() {
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
 <button class="collapsible" on:click={handleCollapse}><h2>Addressable Devices</h2></button>
-<div class="content" bind:this={content}>
+<div class="content" bind:this={collapseContent}>
 
 <label for="device">Device </label> <input bind:value={newDevice} />
 <button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
@@ -103,23 +103,5 @@ function handleCollapse() {
 <style>
     li.device {
         margin: 1em;
-    }
-    .collapsible {
-        background-color:white;
-        /* color:black; */
-        padding: 0%;
-        cursor: pointer;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-    }
-    .collapsible:hover {
-         background-color: #ccc;
-    }
-    .content {
-        padding: 0%;
-        overflow: hidden;
-        background-color: white;
     }
 </style>
