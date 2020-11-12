@@ -1,12 +1,13 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, OP_Mode } from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
 
 // MARK: Message
 let Com;
+let Hex;
 let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
@@ -80,7 +81,7 @@ $: hfDutyCycle = 50;
 $: single_pulse_duration = 500; //low priority
 
 
-$: $single_pulse_block = [0,0,0,0];
+$: $single_pulse_block = [single_pulse_duration & 0x000000ff,(single_pulse_duration & 0x0000ff00) >> 8,0,0];
 //set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
 $: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
@@ -99,7 +100,16 @@ function setTimingBlock(config) {
     }
 }
 
-
+function handleAllOff() {
+    let temp = $OP_Mode;
+    $OP_Mode = 0x00;
+    $block0_31 = [0,0,0,0];
+    $block32_63 = [0,0,0,0];
+    $block64_95 = [0,0,0,0];
+    $block96_127 = [0,0,0,0];
+    Hex.sendCommandBlocks();
+    $OP_Mode = temp;
+}
 </script>
 
 <main>
@@ -152,7 +162,8 @@ function setTimingBlock(config) {
             <Link to="/"><button>Specify Timer Config</button></Link>
             <br/>
             <Link to="infer"><button>Infer Timer Config</button></Link>
-            
+            <br/>
+            <button on:click={handleAllOff}>All Off</button>
             <Route path="/">
                 <h3>Manually Specify Timing</h3>
                 <div on:load="{setTimingBlock("hideLF")}"></div>
@@ -183,7 +194,9 @@ function setTimingBlock(config) {
                     
             </Route>
         </div>
-        <Hexagons/>
+        <div class="col-50">
+            <Hexagons bind:this={Hex}/>
+        </div>
       
         
   </div>

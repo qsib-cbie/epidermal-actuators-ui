@@ -66,49 +66,28 @@ $: deltaY = Yend - Ystart;
 const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 onMount(() => {
-  window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;});
+  window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
   boundRect = target.getBoundingClientRect();
 });
 
 function getBytesForActuator(actuators) {
-    /*Passed active actuator, Returns Array of 16 strings with 8 'bits'*/
-    let shiftActuator;
-    let binActuator;
-    let allActuator = 0;
-    const zero = '0';
+    /*Passed array of active actuators, Returns Array of 16 with decimal representation of binary location of actuator
+    (EX: 3rd actuator => 0b00001000) => 8 in first blockByte */
+    let blockBytes = [...Array(16).keys()].map(i => 0);
     for (let actuator of actuators) {
-        if (actuator <= 31) {
-            shiftActuator = Math.abs(1 << actuator); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(96) + binActuator; //Pad with leading/trailing zeros to fill out to 128 'bits'
-        } else if (actuator >= 32 && actuator < 63) {
-            shiftActuator = Math.abs(1 << (actuator - 32)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(64) + binActuator + zero.repeat(32);
-        } else if (actuator >= 64 && actuator < 95) {
-            shiftActuator = Math.abs(1 << (actuator - 64)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = zero.repeat(32) + binActuator + zero.repeat(64);
-        } else if (actuator >= 96 && actuator < 127) {
-            shiftActuator = Math.abs(1 << (actuator - 96)); 
-            allActuator |= shiftActuator;
-            binActuator = Math.abs(allActuator).toString(2).padStart(32,'0'); 
-            binActuator = binActuator + zero.repeat(96);
-        }
+        const block  = Math.floor((actuator) / 32);
+        const blockByte = Math.floor(((actuator) % 32) / 8);
+  	    blockBytes[((block*32)/8) + blockByte] |= (Math.abs(1 << (actuator-(blockByte*8))));
     }
-    return [...Array(16).keys()].map(i => binActuator.slice(i * 8, (i+1) * 8)).reverse();
+    return blockBytes;
 }
 
 function buildCommandBlocks(active) {
     const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
-    block0_31.set([parseInt(b0_0,2), parseInt(b0_1,2), parseInt(b0_2,2), parseInt(b0_3,2)]);
-    block32_63.set([parseInt(b1_0,2), parseInt(b1_1,2), parseInt(b1_2,2), parseInt(b1_3,2)]);
-    block64_95.set([parseInt(b2_0,2), parseInt(b2_1,2), parseInt(b2_2,2), parseInt(b2_3,2)]);
-    block96_127.set([parseInt(b3_0,2), parseInt(b3_1,2), parseInt(b3_2,2), parseInt(b3_3,2)]);
-
+    block0_31.set([b0_0, b0_1, b0_2, b0_3]);
+    block32_63.set([b1_0, b1_1, b1_2, b1_3]);
+    block64_95.set([b2_0, b2_1, b2_2, b2_3]);
+    block96_127.set([b3_0, b3_1, b3_2, b3_3]);
 }
 
 
@@ -216,13 +195,15 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function sendCommandBlocks() {
+export function sendCommandBlocks() {
     (async () => {
         return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
-        } 
+        } else {
+            $message = "Sent Command Successfully";
+        }
         return result;
     }).catch(error => {
         $message = error;
@@ -317,6 +298,7 @@ function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     clearInterval(resendCommand);
+    clearTimeout(pendingTimeout);
     mouseDown = false;
     isTouch = false;
     activeHexagon = [];
@@ -325,39 +307,39 @@ function handleTouchEnd(e) {
         if (presetName == "sweep") {
             if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                     console.log('LR');
-                    $OP_Mode = parseInt("0x86",16);
+                    $OP_Mode = 0x86;
                     display_preset("sweep-LR");
             } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                     console.log('RL');
-                    $OP_Mode = parseInt("0x87",16);
+                    $OP_Mode = 0x87;
                     display_preset("sweep-RL");
             } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                     console.log('TB');
-                    $OP_Mode = parseInt("0x88",16);
+                    $OP_Mode = 0x88;
                     display_preset("sweep-TB");
             } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                     console.log('BT');
-                    $OP_Mode = parseInt("0x89",16);
+                    $OP_Mode = 0x89;
                     display_preset("sweep-BT");
             } else if (deltaX > 0 && deltaY < 0) {
                     console.log('+45BT');
-                    $OP_Mode = parseInt("0x8a",16);
+                    $OP_Mode = 0x8a;
                     display_preset("sweep+45BT");
             } else if (deltaX < 0 && deltaY > 0) {
                     console.log('+45TB');
-                    $OP_Mode = parseInt("0x8b",16);
+                    $OP_Mode = 0x8b;
                     display_preset("sweep+45TB");
             } else if (deltaX < 0 && deltaY < 0) {
                     console.log('-45BT');
-                    $OP_Mode = parseInt("0x8c",16);
+                    $OP_Mode = 0x8c;
                     display_preset("sweep-45BT");
             } else if (deltaX > 0 && deltaY > 0) {
                     console.log('-45TB');
-                    $OP_Mode = parseInt("0x8d",16);
+                    $OP_Mode = 0x8d;
                     display_preset("sweep-45TB");
             }
         } else if (presetName == "FlashAll") {
-            $OP_Mode = parseInt("0x80",16);
+            $OP_Mode = 0x80;
             display_preset("flashall");
         }
         sendCommandBlocks();
@@ -413,6 +395,9 @@ const sleep = (milliseconds) => {
             on:mousedown={e => handleTouchStart(e)}
             on:mousemove={e => handleTouchMove(e)}
             on:mouseup={e => handleTouchEnd(e)}    
+            on:touchstart={e => handleTouchStart(e)}
+            on:touchmove={e => handleTouchMove(e)}
+            on:touchend={e => handleTouchEnd(e)}
             >
             {#each drawableHexagons as hexagon}
                 <g key={`g-${hexagon.id}`}>
