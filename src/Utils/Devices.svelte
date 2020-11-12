@@ -7,6 +7,7 @@ let Com;
 let endpoint;
 let nopRoute;
 let success;
+let content;
 $: add_device_command = `{ "AddFabric": { "fabric_name": "${newDevice}" } }`;
 $: remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[$activeDevice]}" } }`;
 $: newDevice = "Device0";
@@ -60,28 +61,23 @@ function handleClickActive(idx) {
         activeDevice.set(idx);
     }
 }
-onMount(() => {
-    var coll = document.getElementsByClassName("collapsible");
-    var i;
 
-    for (i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            // this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.display === "block") {
-                content.style.display = "none";
-            } else {
-                content.style.display = "block";
-            }
-        });
-    } 
+onMount(() => {
+    content.style.display = "block";
 });
+function handleCollapse() {
+    if (content.style.display === "block") {
+        content.style.display = "none";
+    } else {
+        content.style.display = "block";
+    }
+}
 </script>
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<button type="button" class="collapsible">Addressable Devices</button>
-<div class="content">
+<button class="collapsible" on:click={handleCollapse}><h2>Addressable Devices</h2></button>
+<div class="content" bind:this={content}>
 
 <label for="device">Device </label> <input bind:value={newDevice} />
 <button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
@@ -103,27 +99,26 @@ onMount(() => {
     {/each}
 </ul>
 </div>
+
 <style>
     li.device {
         margin: 1em;
     }
     .collapsible {
         background-color:white;
-        color:black;
+        /* color:black; */
+        padding: 0%;
         cursor: pointer;
-        padding: .5em;
         width: 100%;
         border: none;
         text-align: left;
         outline: none;
-        font-size: 25px;
     }
     .collapsible:hover {
          background-color: #ccc;
     }
     .content {
-        padding: 0em;
-        display: block;
+        padding: 0%;
         overflow: hidden;
         background-color: white;
     }
