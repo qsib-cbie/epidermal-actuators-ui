@@ -24,6 +24,7 @@ let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
+let hexCache = [];
 let tpCache = [];
 let winWidth = window.innerWidth;
 let winHeight = window.innerHeight;
@@ -41,8 +42,6 @@ $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
-    console.log((winWidth/initialWidth)*(winHeight/initialHeight));
-    console.log((initialHeight/initialWidth)/2.5);
     if (arraySize == "small") {
         view_scale = .05;
         strokeWidth = "1px";
@@ -215,22 +214,18 @@ function sendCommandBlocks() {
 }
 
 function findActiveHexagons(e) {
-    console.log("find active hexagons");
     const radius = Math.sqrt(3) * hexagonSideLength / 2;
     const radiusSquared = radius * radius;
     activeHexagon = [];
-    let Xpos;
-    let Ypos;
+    let Xpos = e.offsetX;
+    let Ypos = e.offsetY;
     for(var i = 0; i < drawableHexagons.length; i++) {
         const x = drawableHexagons[i].x;
         const y = drawableHexagons[i].y;
-        for (var j = 0; j < numTouches; j++) {
+        for (let tp of tpCache) {
             if (isTouch) {
-                Xpos = e.targetTouches[j].clientX - boundRect.left;
-                Ypos = e.targetTouches[j].clientY - boundRect.top;
-            } else{
-                Xpos = e.offsetX;
-                Ypos = e.offsetY;
+                Xpos = tp.clientX - boundRect.left;
+                Ypos = tp.clientY - boundRect.top;
             }
             const xDist = (x - Xpos);
             const yDist = (y - Ypos);
@@ -241,14 +236,10 @@ function findActiveHexagons(e) {
             }
         }
     }
-    if (JSON.stringify(tpCache) != JSON.stringify(activeHexagon)) {
-        // console.log("diff");
+    if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
         sendCommandBlocks();
-    }else{
-        // console.log("same");
     }
-    tpCache = activeHexagon;
-    // console.log(tpCache);
+    hexCache = activeHexagon;
 }
 
 export async function AllOff() {
@@ -261,22 +252,19 @@ export async function AllOff() {
 }
 
 function handleTouchStart(e) { 
-    // console.log("touch start");
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     mouseDown = true;
     clearInterval(resendCommand);
     clearTimeout(pendingTimeout);
     try {
-        console.log(e.targetTouches);
         if (e.targetTouches.length > 0) {
             isTouch = true;
-            numTouches = e.targetTouches.length;
+            for (let ttouch of e.targetTouches) {
+                tpCache = [...tpCache, ttouch];
+            }
         }
-    } catch(error) { 
-        numTouches = 1;
-    }
-    console.log("# touches", numTouches);
+    } catch {tpCache = [0];}
 
     if (isTouch) {
         Xstart = e.targetTouches[0].clientX - boundRect.left;
@@ -288,7 +276,7 @@ function handleTouchStart(e) {
 
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
-        resendCommand = setInterval(() => {if($OP_Mode == 0x05){tpCache = [];} findActiveHexagons(e);}, 500);
+        resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 500);
     }
 }
 
@@ -298,13 +286,19 @@ function handleTouchMove(e) {
     if(!mouseDown) {
         return;
     }
+    tpCache = [];
+    try{ 
+        for (let ttouch of e.targetTouches) {
+            tpCache = [...tpCache, ttouch];
+        }
+    } catch{tpCache = [0];}
     clearInterval(resendCommand);
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){tpCache = [];} findActiveHexagons(e);}, 500)}, 500);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 500)}, 500);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -318,22 +312,15 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    mouseDown = false;
-    isTouch = false;
-    if ($OP_Mode == 0x05) {
+    if ($OP_Mode == 0x05) hexCache = [];
+    try{
+        tpCache = [...tpCache.filter(tp => tp.identifier != e.changedTouches[0].identifier)];
+        if (tpCache.length == 0) throw "No more Touches";
+        findActiveHexagons(e); //not needed but will update activeHexagons when an interval is set
+    } catch{
         tpCache = [];
-    }
-    console.log(e.targetTouches);
-    try{ if (e.targetTouches.length != 0) {
-        numTouches = e.targetTouches.length;
-        console.log("# touches",numTouches);
-        // findActiveHexagons(e);
-    } else {
-        activeHexagon = [];
-        clearInterval(resendCommand);
-        clearTimeout(pendingTimeout);
-        AllOff();
-    }} catch{
+        mouseDown = false;
+        isTouch = false;
         activeHexagon = [];
         clearInterval(resendCommand);
         clearTimeout(pendingTimeout);
