@@ -77,9 +77,16 @@ function handleClickRfPower() {
 $: lfPeriod = 500;
 $: lfDutyCycle = 50;
 $: hfPeriod = 250;
-$: hfDutyCycle = 50;
-$: single_pulse_duration = 500; //low priority
-
+$: hfDutyCycle = 100;
+$: single_pulse_duration = 500;
+$: singlePulse = false;
+$: {
+    if(singlePulse) {
+        $OP_Mode = 0x05;
+    } else {
+        $OP_Mode - 0x02;
+    }
+   }
 
 $: $single_pulse_block = [single_pulse_duration & 0x000000ff,(single_pulse_duration & 0x0000ff00) >> 8,0,0];
 //set freq to 1kHz (start with 200Hz)
@@ -169,7 +176,7 @@ function handleAllOff() {
                 <div on:load="{setTimingBlock("hideLF")}"></div>
                 <Link to="showLF"><button>Specify Low Frequency</button></Link>
 
-                <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+                <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 
                 <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
                 <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
