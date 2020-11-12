@@ -1,6 +1,7 @@
 <script>
 import Communication from "./Communication.svelte";
 import { activeDevice, devices, message } from "../../stores/stores"
+import { onMount } from "svelte";
 
 let Com;
 let endpoint;
@@ -25,9 +26,9 @@ function handleClickDevice() {
             deviceButtonMessage = "Re-attempt Search";
             $message = result['Failure']['message'];
         }else{
-        $message = "Connected to new Device"; 
-        $devices = [...$devices, newDevice];
-        deviceButtonMessage = "Find";
+            $message = "Connected to new Device"; 
+            $devices = [...$devices, newDevice];
+            deviceButtonMessage = "Find";
         }
     }).catch(error => {
         searching = false;
@@ -59,11 +60,28 @@ function handleClickActive(idx) {
         activeDevice.set(idx);
     }
 }
+onMount(() => {
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            // this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+            }
+        });
+    } 
+});
 </script>
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<h2>Addressable Devices</h2>
+<button type="button" class="collapsible">Addressable Devices</button>
+<div class="content">
 
 <label for="device">Device </label> <input bind:value={newDevice} />
 <button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
@@ -84,9 +102,29 @@ function handleClickActive(idx) {
         </li>
     {/each}
 </ul>
-
+</div>
 <style>
     li.device {
         margin: 1em;
+    }
+    .collapsible {
+        background-color:white;
+        color:black;
+        cursor: pointer;
+        padding: .5em;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 25px;
+    }
+    .collapsible:hover {
+         background-color: #ccc;
+    }
+    .content {
+        padding: 0em;
+        display: block;
+        overflow: hidden;
+        background-color: white;
     }
 </style>

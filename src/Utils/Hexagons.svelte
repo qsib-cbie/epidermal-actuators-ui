@@ -12,7 +12,6 @@ export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
-
 export let backgroundAsset = "";
 export let className = "col-50";
 
@@ -71,7 +70,7 @@ const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 onMount(() => {
   window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
   boundRect = target.getBoundingClientRect();
-  });
+});
 
 function getBytesForActuator(actuators) {
     /*Passed array of active actuators, Returns Array of 16 with decimal representation of binary location of actuator
