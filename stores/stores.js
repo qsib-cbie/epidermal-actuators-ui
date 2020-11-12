@@ -2,7 +2,7 @@ import { derived, readable, writable } from 'svelte/store';
 
 export const message = writable("starting...");
 
-export const OP_Mode = writable(2);
+export const OP_Mode = writable(0x02);
 export const activeDevice = writable(0);
 export const devices = writable([]);
 

@@ -25,6 +25,7 @@ let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
+let tpCache = [];
 let winWidth = window.innerWidth;
 let winHeight = window.innerHeight;
 let initialHeight = window.innerHeight;
@@ -41,12 +42,13 @@ $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
-    console.log((winWidth/initialWidth)* (winHeight/initialHeight));
+    console.log((winWidth/initialWidth)*(winHeight/initialHeight));
+    console.log((initialHeight/initialWidth)/2.5);
     if (arraySize == "small") {
         view_scale = .05;
         strokeWidth = "1px";
     }else {
-        view_scale = (winWidth/initialWidth)*(winHeight/initialHeight);
+        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/3;
         strokeWidth = "5px";
     }
    }
@@ -196,7 +198,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-export function sendCommandBlocks() {
+function sendCommandBlocks() {
     (async () => {
         return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
     })().then(result => {
@@ -214,6 +216,7 @@ export function sendCommandBlocks() {
 }
 
 function findActiveHexagons(e) {
+    console.log("find active hexagons");
     const radius = Math.sqrt(3) * hexagonSideLength / 2;
     const radiusSquared = radius * radius;
     activeHexagon = [];
@@ -239,6 +242,22 @@ function findActiveHexagons(e) {
             }
         }
     }
+    if (JSON.stringify(tpCache) != JSON.stringify(activeHexagon)) {
+        // console.log("diff");
+        sendCommandBlocks();
+    }else{
+        // console.log("same");
+    }
+    tpCache = activeHexagon;
+    // console.log(tpCache);
+}
+
+export async function AllOff() {
+    sleep(100);
+    $block0_31 = [0,0,0,0];
+    $block32_63 = [0,0,0,0];
+    $block64_95 = [0,0,0,0];
+    $block96_127 = [0,0,0,0];
     sendCommandBlocks();
 }
 
@@ -250,6 +269,7 @@ function handleTouchStart(e) {
     clearInterval(resendCommand);
     clearTimeout(pendingTimeout);
     try {
+        console.log(e.targetTouches);
         if (e.targetTouches.length > 0) {
             isTouch = true;
             numTouches = e.targetTouches.length;
@@ -257,6 +277,7 @@ function handleTouchStart(e) {
     } catch(error) { 
         numTouches = 1;
     }
+    console.log("# touches", numTouches);
 
     if (isTouch) {
         Xstart = e.targetTouches[0].clientX - boundRect.left;
@@ -268,7 +289,7 @@ function handleTouchStart(e) {
 
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
-        resendCommand = setInterval(findActiveHexagons, 500, e);
+        resendCommand = setInterval(() => {if($OP_Mode == 0x05){tpCache = [];} findActiveHexagons(e);}, 500);
     }
 }
 
@@ -284,7 +305,7 @@ function handleTouchMove(e) {
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(findActiveHexagons, 500, e)}, 500);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){tpCache = [];} findActiveHexagons(e);}, 500)}, 500);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -298,11 +319,28 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    clearInterval(resendCommand);
-    clearTimeout(pendingTimeout);
     mouseDown = false;
     isTouch = false;
-    activeHexagon = [];
+    if ($OP_Mode == 0x05) {
+        tpCache = [];
+    }
+    console.log(e.targetTouches);
+    try{ if (e.targetTouches.length != 0) {
+        numTouches = e.targetTouches.length;
+        console.log("# touches",numTouches);
+        // findActiveHexagons(e);
+    } else {
+        activeHexagon = [];
+        clearInterval(resendCommand);
+        clearTimeout(pendingTimeout);
+        AllOff();
+    }} catch{
+        activeHexagon = [];
+        clearInterval(resendCommand);
+        clearTimeout(pendingTimeout);
+        AllOff();
+    }
+
     if (isPreset) {
         let temp = $OP_Mode;
         if (presetName == "sweep") {

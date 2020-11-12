@@ -107,16 +107,6 @@ function setTimingBlock(config) {
     }
 }
 
-function handleAllOff() {
-    let temp = $OP_Mode;
-    $OP_Mode = 0x00;
-    $block0_31 = [0,0,0,0];
-    $block32_63 = [0,0,0,0];
-    $block64_95 = [0,0,0,0];
-    $block96_127 = [0,0,0,0];
-    Hex.sendCommandBlocks();
-    $OP_Mode = temp;
-}
 </script>
 
 <main>
@@ -170,7 +160,7 @@ function handleAllOff() {
             <br/>
             <Link to="infer"><button>Infer Timer Config</button></Link>
             <br/>
-            <button on:click={handleAllOff}>All Off</button>
+            <button on:click={Hex.AllOff()}>All Off</button>
             <Route path="/">
                 <h3>Manually Specify Timing</h3>
                 <div on:load="{setTimingBlock("hideLF")}"></div>
