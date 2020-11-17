@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, OP_Mode } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command } from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -40,7 +40,7 @@ $: rf_command = `{ "SetRadioFreqPower": { "power_level": ${rfPower}} }`
 const reset_command = '{ "SystemReset": { } }';
 
 $: configureAttempt = {};
-//Need system reset after sending this command?
+
 function handleClickRfPower() {
     configureAttempt = (async () => {
         configuring = true;
@@ -76,27 +76,28 @@ function handleClickRfPower() {
 
 // MARK: Speciy Timer Config
 
-$: lfPeriod = 500;
+$: lfPeriod = 2000;
 $: lfDutyCycle = 50;
-$: hfPeriod = 250;
-$: hfDutyCycle = 100;
-$: single_pulse_duration = 500;
+$: hfPeriod = 200;
+$: hfDutyCycle = 50;
+$: single_pulse_duration = 1000;
+$: single_pulse_pause = 250;
 $: singlePulse = false;
 $: {
     if(singlePulse) {
-        $OP_Mode = 0x05;
+        $command = 0x05;
     } else {
-        $OP_Mode = 0x02;
+        $command = 0x02;
     }
    }
 
-$: $single_pulse_block = [single_pulse_duration & 0x000000ff,(single_pulse_duration & 0x0000ff00) >> 8,0,0];
+$: $single_pulse_block = [(single_pulse_duration & 0x00000ff0) >> 4,(single_pulse_duration & 0x0000000f) << 4 | (single_pulse_pause & 0x00000f00)>>8,single_pulse_pause & 0x000000ff];
 //set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
-$: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
+$: $hf_block = [(hfOn & 0x00000ff0) >> 4, (hfOn & 0x0000000f) << 4 | (hfPeriod & 0x00000f00)>>8, hfPeriod & 0x000000ff];
 
 $: lfOn = lfPeriod * (lfDutyCycle/100);
-$: $lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
+$: $lf_block = [(lfOn & 0x00000ff0) >> 4, (lfOn & 0x0000000f) << 4 | (lfPeriod & 0x00000f00)>>8, lfPeriod & 0x000000ff];
 
 function setTimingBlock(config) {
     if (config == "infer") {
