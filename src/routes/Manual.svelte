@@ -86,7 +86,7 @@ $: {
     if(singlePulse) {
         $OP_Mode = 0x05;
     } else {
-        $OP_Mode - 0x02;
+        $OP_Mode = 0x02;
     }
    }
 
@@ -100,7 +100,7 @@ $: $lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000
 
 function setTimingBlock(config) {
     if (config == "infer") {
-        hfPeriod = 10;      
+        hfPeriod = 5;      
         lfPeriod = 0xffff;
         lfDutyCycle = 100;
     } else if (config == "hideLF"){
@@ -180,7 +180,7 @@ function handleCollapse() {
 
                 <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 
-                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
+                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={5} max={1000}/>
                 <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
             </Route>
             <Route path="infer">

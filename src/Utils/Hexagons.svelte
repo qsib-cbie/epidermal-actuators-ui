@@ -243,12 +243,14 @@ function findActiveHexagons(e) {
 }
 
 export async function AllOff() {
-    sleep(100);
+    let temp_OP = $OP_Mode;
+    $OP_Mode = 0;
     $block0_31 = [0,0,0,0];
     $block32_63 = [0,0,0,0];
     $block64_95 = [0,0,0,0];
     $block96_127 = [0,0,0,0];
     sendCommandBlocks();
+    $OP_Mode = temp_OP;
 }
 
 function handleTouchStart(e) { 
@@ -276,7 +278,7 @@ function handleTouchStart(e) {
 
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
-        resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 500);
+        resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 50);
     }
 }
 
@@ -298,7 +300,7 @@ function handleTouchMove(e) {
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 500)}, 500);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -316,7 +318,6 @@ function handleTouchEnd(e) {
     try{
         tpCache = [...tpCache.filter(tp => tp.identifier != e.changedTouches[0].identifier)];
         if (tpCache.length == 0) throw "No more Touches";
-        findActiveHexagons(e); //not needed but will update activeHexagons when an interval is set
     } catch{
         tpCache = [];
         mouseDown = false;
