@@ -14,13 +14,13 @@ export let isPreset = false;
 export let presetName = "";
 export let backgroundAsset = "";
 export let className = "col-50";
+export let arrayType = "full";
 
 let Com;
 let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -33,17 +33,24 @@ let initialWidth = window.innerWidth;
 let strokeWidth;
 let target;
 let moveable;
+let hexagonsLayout;
 let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
-                    {id:"stichable", text:"Stichable Hexagons"}];
+                    {id:"stichable", text:"Stichable Hexagons"},
+                    {id:"thermal", text:"Thermal Array"}];
 
-$: arrayType = "full";
-$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
+$: {
+    switch(arrayType){
+    case "stichable": hexagonsLayout = stichableHexagons; break; 
+    case "thermal": hexagonsLayout = thermalHexagons; break;
+    default: hexagonsLayout = hexagons;
+    }   
+   }
 $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
     if (arraySize == "small") {
-        view_scale = .05;
+        view_scale = .075;
         strokeWidth = "1px";
     }else {
         view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/3;
@@ -153,6 +160,26 @@ const stichableHexagons = [
     {id: 4, row: 1, col: 4},
     {id: 5, row: 2, col: 1},
     {id: 6, row: 2, col: 3},];  
+const thermalHexagons = [
+    {id: 0, row: 0, col: 2},
+    {id: 1, row: 0, col: 4},
+    {id: 2, row: 0, col: 6},
+    {id: 3, row: 1, col: 1},
+    {id: 4, row: 1, col: 3},
+    {id: 5, row: 1, col: 5},
+    {id: 6, row: 1, col: 7},
+    {id: 7, row: 2, col: 0},
+    {id: 8, row: 2, col: 2},
+    {id: 9, row: 2, col: 4},
+    {id: 10, row:2, col: 6},
+    {id: 11, row: 2, col: 8},
+    {id: 12, row: 3, col: 1},
+    {id: 13, row: 3, col: 3},
+    {id: 14, row: 3, col: 5},
+    {id: 15, row: 3, col: 7},
+    {id: 16, row: 4, col: 2},
+    {id: 17, row: 4, col: 4},
+    {id: 18, row: 4, col: 6},];
 
 $: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
