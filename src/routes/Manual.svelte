@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op } from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -119,6 +119,11 @@ function handleCollapse() {
         configContent.style.display = "block";
     }
 }
+
+function handleSetTiming(Hex) {
+    $cmd_op = 0x00;
+    Hex.sendCommandBlocks();
+}
 </script>
 
 <main>
@@ -174,6 +179,8 @@ function handleCollapse() {
             <Link to="infer"><button>Infer Timer Config</button></Link>
             <br/>
             <button on:click={Hex.AllOff()}>All Off</button>
+            <br/>
+            <button on:click={handleSetTiming(Hex)}>Set Timing</button>
             <Route path="/">
                 <h3>Manually Specify Timing</h3>
                 <div on:load="{setTimingBlock("hideLF")}"></div>
