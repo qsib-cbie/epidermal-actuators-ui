@@ -236,7 +236,7 @@ function findActiveHexagons(e) {
             }
         }
     }
-    if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
+    if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon) && activeHexagon.length != 0) {
         sendCommandBlocks();
     }
     hexCache = activeHexagon;
@@ -405,6 +405,7 @@ const sleep = (milliseconds) => {
             <input style="width: 50%" bind:value={rotation}/> &deg
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
+            {activeHexagon}
         </div>
     {/if}
 

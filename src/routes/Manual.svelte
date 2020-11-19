@@ -90,7 +90,11 @@ $: {
         $command = 0x02;
     }
    }
-
+/*Timing blocks are 3 bytes each. For each block the first byte has the 8 msb of the first value, second byte has the 4lsb of the first value and the 4msb of the second value, the third byte has the 8lsb of the second value
+    Ex: For single pulse | t_pulse(8 msb) | t_pulse(4lsb) and t_pause(4msb) | t_pause(8lsb) | 
+    If t_pulse = 1000ms (0x3E8) and t_pause = 250ms(0FA): |3E |80| FA|
+*/
+        
 $: $single_pulse_block = [(single_pulse_duration & 0x00000ff0) >> 4,(single_pulse_duration & 0x0000000f) << 4 | (single_pulse_pause & 0x00000f00)>>8,single_pulse_pause & 0x000000ff];
 //set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
@@ -121,8 +125,10 @@ function handleCollapse() {
 }
 
 function handleSetTiming(Hex) {
+    let temp = $cmd_op;
     $cmd_op = 0x00;
     Hex.sendCommandBlocks();
+    $cmd_op = temp;
 }
 </script>
 
