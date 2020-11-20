@@ -30,7 +30,8 @@ $: connectionAttempt = (async () => {
 
 // MARK: Antenna Configuration
 // Add a feature to stop the RF field.
-
+$: fieldState = 1; //defualt on
+$: fieldStateString = fieldState === 1 ? "Off" : "On";
 $: rfPower = 4;
 $: activeRfPower = 0;
 $: configuring = false;
@@ -40,6 +41,29 @@ $: rf_command = `{ "SetRadioFreqPower": { "power_level": ${rfPower}} }`
 const reset_command = '{ "SystemReset": { } }';
 
 $: configureAttempt = {};
+
+function handleRfField(Com) {
+    let stateString;
+    if (fieldState) {
+        console.log("Turn RF field OFF");
+        fieldState = 0;
+        stateString = "Off";
+    } else {
+        console.log("Turn RF field ON");
+        fieldState = 1;
+        stateString = "On";
+    }
+    let field_power_command = `{ "RfFieldState": { "state": ${fieldState} } }`;
+    console.log(fieldState);
+    console.log(field_power_command);
+    (async () => {
+        return await Com.hitEndpoint(endpoint, nopRoute, field_power_command);
+    })().then(result => {
+        $message = "Field is "+stateString;
+    }).catch(error => {
+        $message = error;
+    });
+}
 
 function handleClickRfPower() {
     configureAttempt = (async () => {
@@ -159,6 +183,7 @@ function handleSetTiming(Hex) {
             {/await}
             </div>    
             <h2>Antenna Configuration</h2>
+            <button on:click={handleRfField(Com)}>Turn RF Field {fieldStateString}</button>
 
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
             <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
