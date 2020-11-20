@@ -17,13 +17,6 @@ function handleAddActuators() {
 </script>
 
 <Router>
-    <div class="col-25">
-        <h1>Automatic</h1>
-        <h2>Messages</h2>
-        <p>{$message}</p>
-        <Devices />
-        <button on:click={handleAddActuators}>Add Actuators</button>
-    </div>
     <div class='scroll-box'>
         <div class='option'>
             <!-- Option 1 is default <div class="button" style="background-image:url({img1});"></div>  -->

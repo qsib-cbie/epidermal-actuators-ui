@@ -10,22 +10,26 @@
 
   <style>
 	  .link-wrapper {
-		padding: 2em;
-		display: inline;
+		width: 49%;
+		box-sizing: border-box;
+		border: 4px solid deepskyblue;
+		border-radius: 2px;
+		padding: 1em;
+		text-align: center;
+		background-color: white;
+	  }
+	  .link-wrapper:focus {
+		  border-color: blue;
 	  }
   </style>
 
   <Router url="{url}">
 	<nav>
-	  <div class="link-wrapper"> <Link to="/">Home</Link> </div>
-	  <div class="link-wrapper"> <Link to="manual">Manual</Link> </div>
-	  <div class="link-wrapper"> <Link to="automatic">Automatic</Link> </div>
-	  <div class="link-wrapper"> <Link to="prepared">Prepared Sequences</Link> </div>
+	  <Link to="/"><button class="link-wrapper"> Configuration</button></Link>
+	  <Link to="automatic"><button class="link-wrapper">Automatic</button></Link>
 	</nav>
 	<div>
-	  <Route path="manual/*" component="{Manual}" />
+	  <Route path="/*" component="{Manual}" />
 	  <Route path="automatic/*" component="{Automatic}" />
-	  <Route path="prepared/*" component="{PreparedSequences}" />
-	  <Route path="/" component="{Home}" />
 	</div>
   </Router>

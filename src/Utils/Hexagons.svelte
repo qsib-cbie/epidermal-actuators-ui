@@ -14,6 +14,7 @@ export let isPreset = false;
 export let presetName = "";
 export let backgroundAsset = "";
 export let className = "col-50";
+export let arrayType = "full";
 
 let Com;
 let pendingTimeout;
@@ -36,7 +37,6 @@ let moveable;
 let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
                     {id:"stichable", text:"Stichable Hexagons"}];
 
-$: arrayType = "full";
 $: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
 $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
@@ -394,7 +394,7 @@ const sleep = (milliseconds) => {
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
 <div class="full-container" style={setBackground}>
-    {#if arraySize == "normal"}
+    <!-- {#if arraySize == "normal"}
         <div class="col-5">
             <select bind:value={arrayType}>
                 {#each hexagonTypes as type}
@@ -410,7 +410,7 @@ const sleep = (milliseconds) => {
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
         </div>
-    {/if}
+    {/if} -->
 
     <div class={className}>
         <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}

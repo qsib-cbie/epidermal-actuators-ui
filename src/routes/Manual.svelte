@@ -160,15 +160,22 @@ function handleCollapse() {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-            <Devices />
 
         </div>
         
         <div class='col-25'>
             <br/><br/><br/>
+            <Devices />
+            <br/>
             <h2>Timer Configuration</h2>
-
-            <Link to="/"><button>Specify Timer Config</button></Link>
+            <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+                
+                <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
+                <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
+                
+                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
+                <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
+            <!-- <Link to="/"><button>Specify Timer Config</button></Link>
             <br/>
             <Link to="infer"><button>Infer Timer Config</button></Link>
             <br/>
@@ -201,10 +208,10 @@ function handleCollapse() {
                 <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
                 <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
                     
-            </Route>
+            </Route> -->
         </div>
         <div class="col-50">
-            <Hexagons bind:this={Hex}/>
+            <Hexagons arrayType="stich" bind:this={Hex}/>
         </div>
       
         
