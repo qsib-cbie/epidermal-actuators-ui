@@ -232,12 +232,16 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
-                buildCommandBlocks(activeHexagon);
             }
         }
     }
-    if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon) && activeHexagon.length != 0) {
-        sendCommandBlocks();
+    buildCommandBlocks(activeHexagon);
+    if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
+        if (activeHexagon.length != 0) {
+            sendCommandBlocks();
+        } else {
+            AllOff();
+        }
     }
     hexCache = activeHexagon;
 }
@@ -274,7 +278,8 @@ function handleTouchStart(e) {
 
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
-        resendCommand = setInterval(() => {if($command == 0x05){hexCache = [];} findActiveHexagons(e);}, 50);
+        //Interval needs to be based on timing settings so it doesn't overwrite the previous command
+        resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50);
     }
 }
 
@@ -296,7 +301,7 @@ function handleTouchMove(e) {
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command == 0x05){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -310,7 +315,7 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    if ($command == 0x05) hexCache = [];
+    if ($command > 3 ) hexCache = [];
     try{
         tpCache = [...tpCache.filter(tp => tp.identifier != e.changedTouches[0].identifier)];
         if (tpCache.length == 0) throw "No more Touches";
@@ -319,6 +324,7 @@ function handleTouchEnd(e) {
         mouseDown = false;
         isTouch = false;
         activeHexagon = [];
+        hexCache = [];
         clearInterval(resendCommand);
         clearTimeout(pendingTimeout);
         AllOff();

@@ -109,7 +109,7 @@ $: single_pulse_pause = 250;
 $: singlePulse = false;
 $: {
     if(singlePulse) {
-        $command = 0x05;
+        $command = 0x04;
     } else {
         $command = 0x02;
     }
