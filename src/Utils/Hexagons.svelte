@@ -411,7 +411,6 @@ const sleep = (milliseconds) => {
             <input style="width: 50%" bind:value={rotation}/> &deg
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
-            {activeHexagon}
         </div>
     {/if}
 
