@@ -20,7 +20,6 @@ let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
