@@ -1,7 +1,7 @@
 <script>
     import { Router, Link, Route } from 'svelte-routing';
     import Devices from '../Utils/Devices.svelte';
-    import {message, OP_Mode} from '../../stores/stores';
+    import {message} from '../../stores/stores';
     import Hexagons from '../Utils/Hexagons.svelte';
 </script>
 

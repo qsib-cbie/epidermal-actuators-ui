@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -20,7 +20,6 @@ let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -196,7 +195,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     return {id, x, y, width, height, points: points.join(' '), color};
 });
 
-function sendCommandBlocks() {
+export function sendCommandBlocks() {
     (async () => {
         return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
     })().then(result => {
@@ -232,25 +231,25 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
-                buildCommandBlocks(activeHexagon);
             }
         }
     }
+    buildCommandBlocks(activeHexagon);
     if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
-        sendCommandBlocks();
+        if (activeHexagon.length != 0) {
+            sendCommandBlocks();
+        } else {
+            AllOff();
+        }
     }
     hexCache = activeHexagon;
 }
 
 export async function AllOff() {
-    let temp_OP = $OP_Mode;
-    $OP_Mode = 0;
-    $block0_31 = [0,0,0,0];
-    $block32_63 = [0,0,0,0];
-    $block64_95 = [0,0,0,0];
-    $block96_127 = [0,0,0,0];
+    let temp_OP = $command;
+    $command = 0;
     sendCommandBlocks();
-    $OP_Mode = temp_OP;
+    $command = temp_OP;
 }
 
 function handleTouchStart(e) { 
@@ -278,7 +277,8 @@ function handleTouchStart(e) {
 
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
-        resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 50);
+        //Interval needs to be based on timing settings so it doesn't overwrite the previous command
+        resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50);
     }
 }
 
@@ -300,7 +300,7 @@ function handleTouchMove(e) {
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($OP_Mode == 0x05){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -314,7 +314,7 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    if ($OP_Mode == 0x05) hexCache = [];
+    if ($command > 3 ) hexCache = [];
     try{
         tpCache = [...tpCache.filter(tp => tp.identifier != e.changedTouches[0].identifier)];
         if (tpCache.length == 0) throw "No more Touches";
@@ -323,53 +323,54 @@ function handleTouchEnd(e) {
         mouseDown = false;
         isTouch = false;
         activeHexagon = [];
+        hexCache = [];
         clearInterval(resendCommand);
         clearTimeout(pendingTimeout);
         AllOff();
     }
 
     if (isPreset) {
-        let temp = $OP_Mode;
+        let temp = $command;
         if (presetName == "sweep") {
             if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                     console.log('LR');
-                    $OP_Mode = 0x86;
+                    $command = 0x86;
                     display_preset("sweep-LR");
             } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                     console.log('RL');
-                    $OP_Mode = 0x87;
+                    $command = 0x87;
                     display_preset("sweep-RL");
             } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                     console.log('TB');
-                    $OP_Mode = 0x88;
+                    $command = 0x88;
                     display_preset("sweep-TB");
             } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                     console.log('BT');
-                    $OP_Mode = 0x89;
+                    $command = 0x89;
                     display_preset("sweep-BT");
             } else if (deltaX > 0 && deltaY < 0) {
                     console.log('+45BT');
-                    $OP_Mode = 0x8a;
+                    $command = 0x8a;
                     display_preset("sweep+45BT");
             } else if (deltaX < 0 && deltaY > 0) {
                     console.log('+45TB');
-                    $OP_Mode = 0x8b;
+                    $command = 0x8b;
                     display_preset("sweep+45TB");
             } else if (deltaX < 0 && deltaY < 0) {
                     console.log('-45BT');
-                    $OP_Mode = 0x8c;
+                    $command = 0x8c;
                     display_preset("sweep-45BT");
             } else if (deltaX > 0 && deltaY > 0) {
                     console.log('-45TB');
-                    $OP_Mode = 0x8d;
+                    $command = 0x8d;
                     display_preset("sweep-45TB");
             }
         } else if (presetName == "FlashAll") {
-            $OP_Mode = 0x80;
+            $command = 0x80;
             display_preset("flashall");
         }
         sendCommandBlocks();
-        $OP_Mode = temp;
+        $command = temp;
     }
 }
 
