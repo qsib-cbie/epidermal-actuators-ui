@@ -10,10 +10,6 @@
 	$: config_style = link === 0 ? "color: black;" : "color: gray;";
 	$: touch_style = link === 1 ? "color: black;" : "color: gray;";
 
-
-	function handleLinkClick(button) {
-		link = button;
-	}
   </script>
 
   <style>

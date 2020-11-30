@@ -458,36 +458,6 @@ const sleep = (milliseconds) => {
         frame.rotate = beforeRotate;
         target.style.transform = `rotate(${beforeRotate}deg)`;
     }}
-    snappable={true}
-    verticalGuidelines={[0,200,400]}
-    horizontalGuidelines={[0,200,400]}
-    snapThreshold={5}
-    isDisplaySnapDigit={true}
-    snapGap={true}
-    snapElement={true}
-    snapVertical={true}
-    snapHorizontal={true}
-    snapCenter={false}
-    snapDigit={0}
-    
-
-    draggable={false}
-    throttleDrag={0}
-    startDragRotate={0}
-    throttleDragRotate={0}
-    zoom={1}
-    origin={true}
-    padding={{"left":0,"top":0,"right":0,"bottom":0}}
-    on:dragStart={({ detail: { set } }) => {
-        set(frame.translate);
-    }}
-    on:drag={({ detail: { target, beforeTranslate } }) => {
-        frame.translate = beforeTranslate;
-        target.style.transform = `translate(${beforeTranslate[0]}px, ${beforeTranslate[1]}px)`;
-    }}
-    on:dragEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
-        console.log("onDragEnd", target, isDrag);
-    }}
 />
 
 
@@ -498,7 +468,7 @@ const sleep = (milliseconds) => {
         text-align: center;
 
         margin: 0em auto;
-        margin-top: 3em;
+        /* margin-top: 3em; */
         padding: 0em;
     }
     svg {
