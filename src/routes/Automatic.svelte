@@ -20,6 +20,16 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
+function handleClickOption(img, num) {
+    usePreset = false;
+    if (lastPreset) {
+        lastPreset.style = "";
+        lastPreset = null;
+    }
+    main_img = img;
+    is_active = num;
+}
+
 function setPreset(name) {
     presetName = name;
     let element = document.getElementById(name);
@@ -39,7 +49,7 @@ function setPreset(name) {
     <div class='scroll-box'>
         <div class='option'>
             <!-- Option 0 is default -->
-                <button class="op-button" style={"background-image:url("+back_img+");"} on:click={() => {main_img = back_img; is_active=0; usePreset=false; lastPreset.style = "";}}>
+                <button class="op-button" style={"background-image:url("+back_img+");"} on:click={() => handleClickOption(back_img, 0)}>
                     {#if (is_active == 0)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
@@ -48,7 +58,7 @@ function setPreset(name) {
                 </button>
         </div>
         <div class='option' >
-                <button class="op-button" style={"background-image:url("+upper_arm_img+");"} on:click={() => {main_img = upper_arm_img; is_active=1; usePreset=false; lastPreset.style = "";}}>
+                <button class="op-button" style={"background-image:url("+upper_arm_img+");"} on:click={() => handleClickOption(upper_arm_img, 1)}>
                     {#if (is_active == 1)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
@@ -57,7 +67,7 @@ function setPreset(name) {
                 </button>
         </div>
         <div class='option' >
-                <button class="op-button" style={"background-image:url("+chest_img+");"} on:click={() => {main_img = chest_img; is_active=2; usePreset=false; lastPreset.style = "";}}>
+                <button class="op-button" style={"background-image:url("+chest_img+");"} on:click={() => handleClickOption(chest_img, 2)}>
                     {#if (is_active == 2)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
@@ -66,7 +76,7 @@ function setPreset(name) {
                 </button>
         </div>
         <div class='option' >
-                <button class="op-button" style={"background-image:url("+thigh_img+");"} on:click={() => {main_img = thigh_img; is_active=3; usePreset=false; lastPreset.style = "";}}>
+                <button class="op-button" style={"background-image:url("+thigh_img+");"} on:click={() => handleClickOption(thigh_img, 3)}>
                    {#if (is_active == 3)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
@@ -75,7 +85,7 @@ function setPreset(name) {
                 </button>
         </div>
         <div class='option' >
-                <button class="op-button" style={"background-image:url("+hand_img+");"} on:click={() => {main_img = hand_img; is_active=4; usePreset=false; lastPreset.style = "";}}>
+                <button class="op-button" style={"background-image:url("+hand_img+");"} on:click={() => handleClickOption(hand_img, 4)}>
                     {#if (is_active == 4)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
@@ -84,7 +94,7 @@ function setPreset(name) {
                 </button>
         </div>
         <div class='option' >
-                <button class="op-button" style={"background-image:url("+shoulder_img+");"} on:click={() => {main_img = shoulder_img; is_active=5; usePreset=false; lastPreset.style = "";}}> 
+                <button class="op-button" style={"background-image:url("+shoulder_img+");"} on:click={() => handleClickOption(shoulder_img, 5)}> 
                     {#if (is_active == 5)}
                         <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
                     {:else}
