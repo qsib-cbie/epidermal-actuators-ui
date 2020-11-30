@@ -13,7 +13,6 @@ export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
 export let backgroundAsset = "";
-export let className = "col-50";
 export let arrayType = "full";
 
 let Com;
@@ -412,7 +411,7 @@ const sleep = (milliseconds) => {
         </div>
     {/if} -->
 
-    <div class={className}>
+    <div class="hexagons">
         <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
             height={`${viewBox.y}px`}
@@ -437,9 +436,9 @@ const sleep = (milliseconds) => {
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        {#if arraySize == "normal"}
+                        <!-- {#if arraySize == "normal"}
                             <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                        {/if}
+                        {/if} -->
                     </g>
             {/each}
         </svg>
@@ -493,27 +492,14 @@ const sleep = (milliseconds) => {
 
 
 <style>
-    .col-5 {
-        width: 20%;
-        height: 10%;
-        display: inline-block;
-        vertical-align: top;
-        margin: 0em auto;
-        margin-top: 3em;
-        font-size: large;
-    }
-
-    .col-50 {
-        width: 50%;
+    .hexagons {
+        width: 100%;
         height: 100%;
-
-        display: inline-block;
-        vertical-align: top;
+        text-align: center;
 
         margin: 0em auto;
         margin-top: 3em;
-
-        padding: 1em;
+        padding: 0em;
     }
     svg {
         cursor: draggable;
