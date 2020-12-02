@@ -41,6 +41,11 @@
   </style>
 
   <Router url="{url}">
+	
+	<div style={"height:"+ window.innerHeight*.87+"px"}>
+	  <Route path="/*" component="{Manual}" />
+	  <Route path="automatic/*" component="{Automatic}" />
+	</div>
 	<nav>
 	  	<Link class="link-wrapper" to="/">
 			<button class="link-wrapper" on:click={() => link = 0} style={config_style}>
@@ -57,8 +62,4 @@
 			</button>
 		</Link>
 	</nav>
-	<div>
-	  <Route path="/*" component="{Manual}" />
-	  <Route path="automatic/*" component="{Automatic}" />
-	</div>
   </Router>

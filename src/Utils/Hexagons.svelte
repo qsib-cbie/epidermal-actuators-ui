@@ -12,7 +12,7 @@ export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
-export let backgroundAsset = "";
+// export let backgroundAsset = "";
 export let arrayType = "full";
 
 let Com;
@@ -20,7 +20,7 @@ let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-let numTouches = 1;
+// let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -45,11 +45,10 @@ $: {
         view_scale = .05;
         strokeWidth = "1px";
     }else {
-        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/3;
+        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/4;
         strokeWidth = "5px";
     }
    }
-$: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
 $: setStyle = "transform: "+setRotationstyle+";";
 
 $: mouseDown = false;
@@ -392,7 +391,6 @@ const sleep = (milliseconds) => {
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<div class="full-container" style={setBackground}>
     <!-- {#if arraySize == "normal"}
         <div class="col-5">
             <select bind:value={arrayType}>
@@ -412,7 +410,7 @@ const sleep = (milliseconds) => {
     {/if} -->
 
     <div class="hexagons">
-        <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
+        <svg version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
             height={`${viewBox.y}px`}
             viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
@@ -449,7 +447,6 @@ const sleep = (milliseconds) => {
             <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
         {/if}
     </div>
-</div>
 
 <Moveable target={target} bind:this={moveable} className="moveable"
     rotatable={true} throttleRotate={0} rotatePosition="top"
@@ -473,11 +470,6 @@ const sleep = (milliseconds) => {
     }
     svg {
         cursor: draggable;
-    }
-    .full-container {
-        width: 100%;
-        height: 100%;
-        vertical-align: middle;
     }
     :global(.moveable) {
         z-index: 10;
