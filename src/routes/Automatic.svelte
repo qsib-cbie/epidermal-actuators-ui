@@ -8,12 +8,10 @@ import Status from '../Utils/Status.svelte';
 let hexActive;
 let hexType;
 let is_active = 0;
-let numOptions = 6;
 let presetName;
 let usePreset = false;
 let lastPreset;
 
-$: main_img = back_img;
 let back_img = "images/back.png";
 let chest_img = "images/chest.png";
 let hand_img = "images/hand.png";
@@ -21,13 +19,26 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-function handleClickOption(img, num) {
+$: main_style = "background-image:url("+back_img+");";
+
+let location_options = [ {id: 0, style: "background-image:url("+back_img+");"},
+                {id: 1, style: "background-image:url("+upper_arm_img+");"},
+                {id: 2, style: "background-image:url("+chest_img+");"},
+                {id: 3, style: "background-image:url("+thigh_img+");"},
+                {id: 4, style: "background-image:url("+hand_img+");"},
+                {id: 5, style: "background-image:url("+shoulder_img+");"},];
+
+let preset_options = [{id:"FlashAll", label:"Flash All"}, 
+                      {id:"sweep", label:"Sweep"}, 
+                      {id:"ABCs", label:"ABCs"}];
+
+function handleClickOption(style, num) {
     usePreset = false;
     if (lastPreset) {
         lastPreset.style = "";
         lastPreset = null;
     }
-    main_img = img;
+    main_style = style;
     is_active = num;
 }
 
@@ -47,86 +58,34 @@ function setPreset(name) {
 </script>
 <Status/>
 <Router>
-    <div class="scroll-box" >
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-            <!-- Option 0 is default -->
-                <button class="op-button" style={"background-image:url("+back_img+");"} on:click={() => handleClickOption(back_img, 0)}>
-                    {#if (is_active == 0)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-                <button class="op-button" style={"background-image:url("+upper_arm_img+");"} on:click={() => handleClickOption(upper_arm_img, 1)}>
-                    {#if (is_active == 1)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-                <button class="op-button" style={"background-image:url("+chest_img+");"} on:click={() => handleClickOption(chest_img, 2)}>
-                    {#if (is_active == 2)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-                <button class="op-button" style={"background-image:url("+thigh_img+");"} on:click={() => handleClickOption(thigh_img, 3)}>
-                   {#if (is_active == 3)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-                <button class="op-button" style={"background-image:url("+hand_img+");"} on:click={() => handleClickOption(hand_img, 4)}>
-                    {#if (is_active == 4)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
-        <div class="option" style={"height: "+100/numOptions+"%"}>
-                <button class="op-button" style={"background-image:url("+shoulder_img+");"} on:click={() => handleClickOption(shoulder_img, 5)}> 
-                    {#if (is_active == 5)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                    {:else}
-                        <Hexagons arraySize="small" isPreset= true/>
-                    {/if}
-                </button>
-        </div>
+    <div class="scroll-box">
+        {#each location_options as option}
+            <div class="option" style={"height: "+100/(location_options.length)+"%"}>
+                    <button class="op-button" style={option.style} on:click={() => handleClickOption(option.style, option.id)}>
+                        {#if (is_active == option.id)}
+                            <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
+                        {:else}
+                            <Hexagons arraySize="small" isPreset= true/>
+                        {/if}
+                    </button>
+            </div>
+        {/each}
     </div>
 
     <div class="virtual-touch" >
-        <div class="op-button" style={"background-image:url("+main_img+"); background-size: 200% 200%;"}>
+        <div class="op-button" style={""+main_style+"background-size: 200% 200%;"}>
             <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} presetName={presetName} isPreset={usePreset}/>
         </div>
     </div>
 
     <div class="scroll-box">
-        <div class="option" style={"height: "+100/6+"%"}>
-            <button id="FlashAll" class="op-button" on:click={() => setPreset("FlashAll")}>
-                Flash All
-            </button>
-        </div>
-       <div class="option" style={"height: "+100/6+"%"}>
-            <button id="sweep" class="op-button" on:click={() => setPreset("sweep")}>
-                Sweep
-            </button>
-        </div>
-        <div class="option" style={"height: "+100/6+"%"}>
-            <button id="ABCs" class="op-button" on:click={() => setPreset("ABCs")}>
-                ABCs
-            </button>
-        </div>
+        {#each preset_options as option}
+            <div class="option" style={"height: "+100/preset_options.length+"%"}>
+                <button id={option.id} class="op-button" on:click={() => setPreset(option.id)}>
+                    {option.label}
+                </button>
+            </div>    
+        {/each}
     </div>
 </Router>
 
