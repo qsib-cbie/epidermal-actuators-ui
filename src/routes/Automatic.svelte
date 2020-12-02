@@ -3,6 +3,7 @@ import { Router, Link, Route } from 'svelte-routing';
 import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
 import { message } from "../../stores/stores.js";
+import Status from '../Utils/Status.svelte';
 
 let hexActive;
 let hexType;
@@ -44,7 +45,8 @@ function setPreset(name) {
     }
 }
 </script>
-
+<Status/>
+<Router>
     <div class="scroll-box" >
         <div class="option" style={"height: "+100/numOptions+"%"}>
             <!-- Option 0 is default -->
@@ -126,7 +128,7 @@ function setPreset(name) {
             </button>
         </div>
     </div>
-
+</Router>
 
 <style>
     .scroll-box{

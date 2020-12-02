@@ -1,9 +1,10 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, OP_Mode } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, is_success, is_connected, OP_Mode } from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
+import Status from "../Utils/Status.svelte";
 import { onMount } from "svelte";
 
 // MARK: Message
@@ -13,7 +14,6 @@ let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
 let configContent;
-$: {console.log(endpoint)}
 
 // MARK: Server Configuration
 
@@ -25,6 +25,7 @@ $: connectionAttempt = (async () => {
     return await Com.hitEndpoint(endpoint, nopRoute, success);
 })().then(() => {
     $message = "Connection Established";
+    $is_connected = true;
     });
 
 
@@ -55,15 +56,18 @@ function handleClickRfPower() {
             return await Com.hitEndpoint(endpoint, nopRoute, reset_command);
         })().then(result => {
             $message = "System Reset Complete"
+            $is_success = true;
             $devices = [];
             $activeDevice = 0;
             return result;
         }).catch(error => {
+            $is_success = false;
             $message = error;
             throw error;
         });
         return result;
     }).catch(error => {
+        $is_success = false;
         $message = error;
         configuring = false;
         antennaButtonMessage = "Re-attempt Configure";
@@ -122,10 +126,9 @@ function handleCollapse() {
 
 <main>
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:hostname bind:port bind:route/>
+<Status/>
 <Router>
-
     <div class='content-wrapper'>
-
         <div class='col-25'>
             <button class="collapsible" on:click={handleCollapse}><h2><img id="serve_icon" src="images/server_icon.png" alt="Server Icon"/>  Server Configuration</h2></button>
             <div class="content" bind:this={configContent}>
@@ -173,22 +176,21 @@ function handleCollapse() {
         </div>
         <div class="col-25">
             <h2 style="text-align: center;"><img id="device_test_icon" src="images/device_test_icon.png" alt="Device Test Icon"/>  Device Test</h2>
-            <Hexagons arrayType="stich" bind:this={Hex}/>
+            <div style="margin-top: 7em;">
+                <Hexagons arrayType="stich" bind:this={Hex}/>
+            </div>
         </div>
-  </div>
+    </div>
 </Router>
 
 </main>
+
 
 <style>
     .content-wrapper {
         margin: 0px auto;
     }
-    img {
-		  height: auto;
-		  width: 15%;
-		  vertical-align: middle;
-	  }
+    
     .col-25 {
         width: 25%;
         height: 100%;
@@ -199,7 +201,7 @@ function handleCollapse() {
         margin: 2em;
         padding: 1em;
     }
-
+    
     p.success {
         color: green;
         font-size: medium;

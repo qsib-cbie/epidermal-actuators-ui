@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display, is_success } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -12,7 +12,6 @@ export let orientation = "horizontal";
 export let arraySize = "normal";
 export let isPreset = false;
 export let presetName = "";
-// export let backgroundAsset = "";
 export let arrayType = "full";
 
 let Com;
@@ -20,7 +19,6 @@ let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-// let numTouches = 1;
 let endpoint;
 let nopRoute;
 let success;
@@ -200,11 +198,14 @@ function sendCommandBlocks() {
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
+            $is_success = false;
         } else {
             $message = "Sent Command Successfully";
+            $is_success = true;
         }
         return result;
     }).catch(error => {
+        $is_success = false;
         $message = error;
         activeHexagon = [];
         throw error;
