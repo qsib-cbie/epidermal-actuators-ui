@@ -19,27 +19,27 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-$: main_style = "background-image:url("+back_img+");";
+$: main_obj = {id: 0, size:.7, top: 20, left: 0, main_top: 20, main_left: 0, style: "background-image:url("+back_img+");"};
 
-let location_options = [ {id: 0, style: "background-image:url("+back_img+");"},
-                {id: 1, style: "background-image:url("+upper_arm_img+");"},
-                {id: 2, style: "background-image:url("+chest_img+");"},
-                {id: 3, style: "background-image:url("+thigh_img+");"},
-                {id: 4, style: "background-image:url("+hand_img+");"},
-                {id: 5, style: "background-image:url("+shoulder_img+");"},];
+let location_options = [{id: 0, size:.7, top: 20, left: 0, main_top: 20, main_left: 0, style: "background-image:url("+back_img+");"},
+                        {id: 1, size:.5, top: 5, left: 10, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
+                        {id: 2, size:.7, top: 10, left: 0, main_top: 20, main_left: 0, style: "background-image:url("+chest_img+");"},
+                        {id: 3, size:.4, top: -25, left: -4, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
+                        {id: 4, size:.5, top: -10, left: 4, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
+                        {id: 5, size:.4, top: 0, left: 5, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
 
 let preset_options = [{id:"FlashAll", label:"Flash All"}, 
                       {id:"sweep", label:"Sweep"}, 
                       {id:"ABCs", label:"ABCs"}];
 
-function handleClickOption(style, num) {
+function handleClickOption(obj) {
     usePreset = false;
     if (lastPreset) {
         lastPreset.style = "";
         lastPreset = null;
     }
-    main_style = style;
-    is_active = num;
+    main_obj = obj;
+    is_active = obj.id;
 }
 
 function setPreset(name) {
@@ -61,20 +61,24 @@ function setPreset(name) {
     <div class="scroll-box">
         {#each location_options as option}
             <div class="option" style={"height: "+100/(location_options.length)+"%"}>
-                    <button class="op-button" style={option.style} on:click={() => handleClickOption(option.style, option.id)}>
-                        {#if (is_active == option.id)}
-                            <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize="small" isPreset= true/>
-                        {:else}
-                            <Hexagons arraySize="small" isPreset= true/>
-                        {/if}
+                    <button class="op-button" style={option.style} on:click={() => handleClickOption(option)}>
+                        <div style={"position: relative; top: "+option.top+"%; left: "+option.left+"%;"}>
+                            {#if (is_active == option.id)}
+                                <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize=.05 isPreset= true/>
+                            {:else}
+                                <Hexagons arraySize=.05 isPreset= true/>
+                            {/if}
+                        </div>
                     </button>
             </div>
         {/each}
     </div>
 
     <div class="virtual-touch" >
-        <div class="op-button" style={""+main_style+"background-size: 200% 200%;"}>
-            <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} presetName={presetName} isPreset={usePreset}/>
+        <div class="op-button" style={""+main_obj.style+"background-size: 200% 200%;"}>
+            <div style={"position: relative; top: "+main_obj.main_top+"%; left: "+main_obj.main_left+"%;"}>
+                <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize={main_obj.size} presetName={presetName} isPreset={usePreset}/>
+            </div>
         </div>
     </div>
 
@@ -111,7 +115,7 @@ function setPreset(name) {
         width: 100%;
         height: 100%;
         background-color: white;
-        background-size: 100% 100%;
+        background-size: 170% 100%;
         background-position: center; 
         background-repeat: no-repeat;
         color: black;

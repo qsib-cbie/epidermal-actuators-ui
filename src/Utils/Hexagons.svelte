@@ -9,7 +9,7 @@ export let test_ui = false;
 
 export let activeHexagon = [];
 export let orientation = "horizontal";
-export let arraySize = "normal";
+export let arraySize = null;
 export let isPreset = false;
 export let presetName = "";
 export let arrayType = "full";
@@ -39,9 +39,13 @@ $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
-    if (arraySize == "small") {
-        view_scale = .05;
-        strokeWidth = "1px";
+    if (arraySize) {
+        view_scale = arraySize;
+        if (arraySize > .3) {
+            strokeWidth = "5px";
+        } else {
+            strokeWidth = "1px"
+        }
     }else {
         view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/4;
         strokeWidth = "5px";
