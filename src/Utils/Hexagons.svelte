@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display, is_success } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -9,11 +9,9 @@ export let test_ui = false;
 
 export let activeHexagon = [];
 export let orientation = "horizontal";
-export let arraySize = "normal";
+export let arraySize = null;
 export let isPreset = false;
 export let presetName = "";
-export let backgroundAsset = "";
-export let className = "col-50";
 export let arrayType = "full";
 
 let Com;
@@ -38,26 +36,23 @@ let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
                     {id:"stichable", text:"Stichable Hexagons"},
                     {id:"thermal", text:"Thermal Array"}];
 
-$: {
-    switch(arrayType){
-    case "stichable": hexagonsLayout = stichableHexagons; break; 
-    case "thermal": hexagonsLayout = thermalHexagons; break;
-    default: hexagonsLayout = hexagons;
-    }   
-   }
+$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
 $: view_scale = 1;
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
-    if (arraySize == "small") {
-        view_scale = .075;
-        strokeWidth = "1px";
+    if (arraySize) {
+        view_scale = arraySize;
+        if (arraySize > .3) {
+            strokeWidth = "5px";
+        } else {
+            strokeWidth = "1px"
+        }
     }else {
-        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/3;
+        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/4;
         strokeWidth = "5px";
     }
    }
-$: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
 $: setStyle = "transform: "+setRotationstyle+";";
 
 $: mouseDown = false;
@@ -229,11 +224,14 @@ function sendCommandBlocks() {
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
+            $is_success = false;
         } else {
             $message = "Sent Command Successfully";
+            $is_success = true;
         }
         return result;
     }).catch(error => {
+        $is_success = false;
         $message = error;
         activeHexagon = [];
         throw error;
@@ -420,8 +418,7 @@ const sleep = (milliseconds) => {
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<div class="full-container" style={setBackground}>
-    {#if arraySize == "normal"}
+    <!-- {#if arraySize == "normal"}
         <div class="col-5">
             <select bind:value={arrayType}>
                 {#each hexagonTypes as type}
@@ -437,10 +434,10 @@ const sleep = (milliseconds) => {
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
         </div>
-    {/if}
+    {/if} -->
 
-    <div class={className}>
-        <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
+    <div class="hexagons">
+        <svg version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
             height={`${viewBox.y}px`}
             viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
@@ -464,9 +461,9 @@ const sleep = (milliseconds) => {
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        {#if arraySize == "normal"}
+                        <!-- {#if arraySize == "normal"}
                             <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                        {/if}
+                        {/if} -->
                     </g>
             {/each}
         </svg>
@@ -477,7 +474,6 @@ const sleep = (milliseconds) => {
             <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
         {/if}
     </div>
-</div>
 
 <Moveable target={target} bind:this={moveable} className="moveable"
     rotatable={true} throttleRotate={0} rotatePosition="top"
@@ -486,69 +482,21 @@ const sleep = (milliseconds) => {
         frame.rotate = beforeRotate;
         target.style.transform = `rotate(${beforeRotate}deg)`;
     }}
-    snappable={true}
-    verticalGuidelines={[0,200,400]}
-    horizontalGuidelines={[0,200,400]}
-    snapThreshold={5}
-    isDisplaySnapDigit={true}
-    snapGap={true}
-    snapElement={true}
-    snapVertical={true}
-    snapHorizontal={true}
-    snapCenter={false}
-    snapDigit={0}
-    
-
-    draggable={false}
-    throttleDrag={0}
-    startDragRotate={0}
-    throttleDragRotate={0}
-    zoom={1}
-    origin={true}
-    padding={{"left":0,"top":0,"right":0,"bottom":0}}
-    on:dragStart={({ detail: { set } }) => {
-        set(frame.translate);
-    }}
-    on:drag={({ detail: { target, beforeTranslate } }) => {
-        frame.translate = beforeTranslate;
-        target.style.transform = `translate(${beforeTranslate[0]}px, ${beforeTranslate[1]}px)`;
-    }}
-    on:dragEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
-        console.log("onDragEnd", target, isDrag);
-    }}
 />
 
 
 <style>
-    .col-5 {
-        width: 20%;
-        height: 10%;
-        display: inline-block;
-        vertical-align: top;
-        margin: 0em auto;
-        margin-top: 3em;
-        font-size: large;
-    }
-
-    .col-50 {
-        width: 50%;
+    .hexagons {
+        width: 100%;
         height: 100%;
-
-        display: inline-block;
-        vertical-align: top;
+        text-align: center;
 
         margin: 0em auto;
-        margin-top: 3em;
-
-        padding: 1em;
+        /* margin-top: 3em; */
+        padding: 0em;
     }
     svg {
         cursor: draggable;
-    }
-    .full-container {
-        width: 100%;
-        height: 100%;
-        vertical-align: middle;
     }
     :global(.moveable) {
         z-index: 10;

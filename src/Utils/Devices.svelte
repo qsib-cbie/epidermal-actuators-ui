@@ -76,7 +76,7 @@ function handleCollapse() {
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<button class="collapsible" on:click={handleCollapse}><h2>Addressable Devices</h2></button>
+<button class="collapsible" on:click={handleCollapse}><h2><img id="device_icon" src="images/device_icon.png" alt="Device Icon"/> Addressable Devices</h2></button>
 <div class="content" bind:this={collapseContent}>
 
 <label for="device">Device </label> <input bind:value={newDevice} />
@@ -104,4 +104,9 @@ function handleCollapse() {
     li.device {
         margin: 1em;
     }
+    img {
+		  height: auto;
+		  width: 15%;
+		  vertical-align: middle;
+	  }
 </style>
