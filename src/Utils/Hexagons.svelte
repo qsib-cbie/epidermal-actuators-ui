@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display, is_success } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, OP_Mode, preset_display, is_success, activeDevice } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -96,65 +96,66 @@ function buildCommandBlocks(active) {
 
 const hexagons = [
   // Row 0
-  { id: 0, row: 0, col: 1 },
-  { id: 1, row: 0, col: 3 },
+  { id: 0, dev:0, row: 0, col: 1 },
+  { id: 1, dev:0, row: 0, col: 3 },
   // filler
-  { id: 2, row: 0, col: 7 },
-  { id: 3, row: 0, col: 9 },
+  { id: 2, dev:0, row: 0, col: 7 },
+  { id: 3, dev:0, row: 0, col: 9 },
 
   // Row 1
-  { id: 4, row: 1, col: 0 },
-  { id: 5, row: 1, col: 2 },
-  { id: 6, row: 1, col: 4 },
-  { id: 7, row: 1, col: 6 },
-  { id: 8, row: 1, col: 8 },
-  { id: 9, row: 1, col: 10 },
+  { id: 4, dev:0, row: 1, col: 0 },
+  { id: 5, dev:0, row: 1, col: 2 },
+  { id: 6, dev:0, row: 1, col: 4 },
+  { id: 7, dev:0, row: 1, col: 6 },
+  { id: 8, dev:1, row: 1, col: 8 },
+  { id: 9, dev:1, row: 1, col: 10 },
 
   // Row 2
-  { id: 10, row: 2, col: 1 },
-  { id: 11, row: 2, col: 3 },
-  { id: 12, row: 2, col: 5 },
-  { id: 13, row: 2, col: 7 },
-  { id: 14, row: 2, col: 9 },
+  { id: 10, dev:1, row: 2, col: 1 },
+  { id: 11, dev:1, row: 2, col: 3 },
+  { id: 12, dev:1, row: 2, col: 5 },
+  { id: 13, dev:1, row: 2, col: 7 },
+  { id: 14, dev:1, row: 2, col: 9 },
 
   // Row 3
-  { id: 15, row: 3, col: 0 },
-  { id: 16, row: 3, col: 2 },
-  { id: 17, row: 3, col: 4 },
-  { id: 18, row: 3, col: 6 },
-  { id: 19, row: 3, col: 8 },
-  { id: 20, row: 3, col: 10 },
+  { id: 15, dev:0, row: 3, col: 0 },
+  { id: 16, dev:0, row: 3, col: 2 },
+  { id: 17, dev:0, row: 3, col: 4 },
+  { id: 18, dev:0, row: 3, col: 6 },
+  { id: 19, dev:0, row: 3, col: 8 },
+  { id: 20, dev:0, row: 3, col: 10 },
 
   // Row 4
-  { id: 21, row: 4, col: 1 },
-  { id: 22, row: 4, col: 3 },
-  { id: 23, row: 4, col: 5 },
-  { id: 24, row: 4, col: 7 },
-  { id: 25, row: 4, col: 9 },
+  { id: 21, dev:0, row: 4, col: 1 },
+  { id: 22, dev:0, row: 4, col: 3 },
+  { id: 23, dev:0, row: 4, col: 5 },
+  { id: 24, dev:0, row: 4, col: 7 },
+  { id: 25, dev:0, row: 4, col: 9 },
 
   // Row 5
-  { id: 26, row: 5, col: 0 },
-  { id: 27, row: 5, col: 2 },
-  { id: 28, row: 5, col: 4 },
-  { id: 29, row: 5, col: 6 },
-  { id: 30, row: 5, col: 8 },
-  { id: 31, row: 5, col: 10 },
+  { id: 26, dev:0, row: 5, col: 0 },
+  { id: 27, dev:0, row: 5, col: 2 },
+  { id: 28, dev:0, row: 5, col: 4 },
+  { id: 29, dev:0, row: 5, col: 6 },
+  { id: 30, dev:0, row: 5, col: 8 },
+  { id: 31, dev:0, row: 5, col: 10 },
 
   // Row 6
-  { id: 32, row: 6, col: 1 },
-  { id: 33, row: 6, col: 3 },
+  { id: 32, dev:0, row: 6, col: 1 },
+  { id: 33, dev:0, row: 6, col: 3 },
   // filler
-  { id: 34, row: 6, col: 7 },
-  { id: 35, row: 6, col: 9 },];
+  { id: 34, dev:0, row: 6, col: 7 },
+  { id: 35, dev:0, row: 6, col: 9 },];
 
 const stichableHexagons = [
-    {id: 0, row: 0, col: 1},
-    {id: 1, row: 0, col: 3},
-    {id: 2, row: 1, col: 0},    
-    {id: 3, row: 1, col: 2},
-    {id: 4, row: 1, col: 4},
-    {id: 5, row: 2, col: 1},
-    {id: 6, row: 2, col: 3},];  
+    {id: 0, dev:0, row: 0, col: 1},
+    {id: 1, dev:0, row: 0, col: 3},
+    {id: 2, dev:0, row: 1, col: 0},    
+    {id: 3, dev:0, row: 1, col: 2},
+    {id: 4, dev:0, row: 1, col: 4},
+    {id: 5, dev:0, row: 2, col: 1},
+    {id: 6, dev:0, row: 2, col: 3},];  
+
 const thermalHexagons = [
     {id: 0, row: 0, col: 2},
     {id: 1, row: 0, col: 4},
@@ -185,10 +186,10 @@ $: width = Math.sqrt(3) * hexagonSideLength;
 $: height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
-$: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
+$: hexagonsWithoutPixels = hexagonsLayout.map(({id, dev, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    return {id, row, col, x, y}
+    return {id, dev, row, col, x, y}
 });
 
 $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
@@ -198,7 +199,7 @@ $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     };
 });
 
-$: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
+$: drawableHexagons = hexagonsLayout.map(({id, dev, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -215,7 +216,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
     const color = activeHexagon.includes(id) ? "mediumseagreen" : "black";
 
-    return {id, x, y, width, height, points: points.join(' '), color};
+    return {id, dev, x, y, width, height, points: points.join(' '), color};
 });
 
 function sendCommandBlocks() {
@@ -257,6 +258,7 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
+                $activeDevice = drawableHexagons[i].dev;
                 buildCommandBlocks(activeHexagon);
             }
         }
