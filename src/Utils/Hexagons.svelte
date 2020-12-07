@@ -36,20 +36,29 @@ let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
                     {id:"stichable", text:"Stichable Hexagons"},
                     {id:"thermal", text:"Thermal Array"}];
 
-$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
-$: view_scale = 1;
+$: {switch(arrayType){
+    case "stich":
+        hexagonsLayout = stichableHexagons;
+        break;
+    case "hand":
+        hexagonsLayout = hand_hexagons;
+        break;
+    default:
+        hexagonsLayout = hexagons;
+}}
+$: view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
     if (arraySize) {
-        view_scale = arraySize;
-        if (arraySize > .3) {
+        view_scale = view_scale/arraySize;
+        if (view_scale > .3) {
             strokeWidth = "5px";
         } else {
             strokeWidth = "1px"
         }
     }else {
-        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/4;
+        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);
         strokeWidth = "5px";
     }
    }
@@ -71,6 +80,7 @@ const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 onMount(() => {
   window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
   boundRect = target.getBoundingClientRect();
+  console.log(view_scale);
 });
 
 function getBytesForActuator(actuators) {
@@ -145,7 +155,8 @@ const hexagons = [
   { id: 33, dev:0, row: 6, col: 3 },
   // filler
   { id: 34, dev:0, row: 6, col: 7 },
-  { id: 35, dev:0, row: 6, col: 9 },];
+  { id: 35, dev:0, row: 6, col: 9 },
+];
 
 const stichableHexagons = [
     {id: 0, dev:0, row: 0, col: 1},
@@ -154,7 +165,8 @@ const stichableHexagons = [
     {id: 3, dev:0, row: 1, col: 2},
     {id: 4, dev:0, row: 1, col: 4},
     {id: 5, dev:0, row: 2, col: 1},
-    {id: 6, dev:0, row: 2, col: 3},];  
+    {id: 6, dev:0, row: 2, col: 3},
+];  
 
 const thermalHexagons = [
     {id: 0, row: 0, col: 2},
@@ -175,8 +187,35 @@ const thermalHexagons = [
     {id: 15, row: 3, col: 7},
     {id: 16, row: 4, col: 2},
     {id: 17, row: 4, col: 4},
-    {id: 18, row: 4, col: 6},];
+    {id: 18, row: 4, col: 6},
+];
 
+const hand_hexagons = [
+  { id: 0, dev:0, row:0, col:5},
+  { id: 1, dev:0, row:0, col:7},
+  { id: 2, dev:0, row:1, col:4},
+  { id: 3, dev:0, row:1, col:6},
+  { id: 4, dev:0, row:1, col:8},
+  { id: 5, dev:0, row:2, col:5},
+  { id: 6, dev:0, row:2, col:7},
+
+  { id: 0, dev:1, row:2, col:1},
+  { id: 1, dev:1, row:2, col:3},
+  { id: 2, dev:1, row:3, col:0},
+  { id: 3, dev:1, row:3, col:2},
+  { id: 4, dev:1, row:3, col:4},
+  { id: 5, dev:1, row:4, col:1},
+  { id: 6, dev:1, row:4, col:3},
+
+  { id: 0, dev:2, row:3, col:6},
+  { id: 1, dev:2, row:3, col:8},
+  { id: 2, dev:2, row:4, col:5},
+  { id: 3, dev:2, row:4, col:7},
+  { id: 4, dev:2, row:4, col:9},
+  { id: 5, dev:2, row:5, col:6},
+  { id: 6, dev:2, row:5, col:8},
+
+];
 $: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
 $: baseSpacing = 15*view_scale;
@@ -214,7 +253,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, dev, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = activeHexagon.includes(id) ? "mediumseagreen" : "black";
+    const color = (activeHexagon.includes(id) && dev == $activeDevice ) ? "mediumseagreen" : "black";
 
     return {id, dev, x, y, width, height, points: points.join(' '), color};
 });
