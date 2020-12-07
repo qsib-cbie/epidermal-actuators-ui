@@ -21,8 +21,8 @@ export const single_pulse_block = writable([0, 0, 0]);
 export const hf_block = writable([0, 0, 0]);
 export const lf_block = writable([0, 0, 0]);
 
-export const act_command = derived([command, cmd_op, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, single_pulse_block, hf_block, lf_block],
-    ([$command, $cmd_op, $devices, $activeDevice, $block0_31, $block32_63, $block64_95, $block96_127, $single_pulse_block, $hf_block, $lf_block]) => `{ "ActuatorsCommand": {
+export const act_command = derived([command, act_cnt8, cmd_op, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, single_pulse_block, hf_block, lf_block],
+  ([$command, $act_cnt8, $cmd_op, $devices, $activeDevice, $block0_31, $block32_63, $block64_95, $block96_127, $single_pulse_block, $hf_block, $lf_block]) => `{ "ActuatorsCommand": {
     "fabric_name": "${$devices[$activeDevice]}",
     "op_mode_block": {"act_cnt8":${$act_cnt8}, "cmd_op":${$cmd_op}, "command":${$command}},
     "actuator_mode_blocks": {

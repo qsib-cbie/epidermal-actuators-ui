@@ -21,12 +21,12 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-let location_options = [{id: 0, size: winSize, top: 50, left: 32, main_top: 20, main_left: 0, style: "background-image:url("+back_img+");"},
-                        {id: 1, size: winSize-.2, top: 20, left: 40, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
-                        {id: 2, size: winSize, top: 30, left: 32, main_top: 10, main_left: 0, style: "background-image:url("+chest_img+");"},
-                        {id: 3, size: winSize-.2, top: 5, left: 30, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
-                        {id: 4, size: winSize-.2, top: 10, left: 32, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
-                        {id: 5, size: winSize-.2, top: 30, left: 32, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
+let location_options = [{id: 0, hexType:"", size: null, top: 70, left: 50, main_top: 25, main_left: 0, style: "background-image:url("+back_img+");"},
+                        {id: 1, hexType:"", size: null, top: 40, left: 60, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
+                        {id: 2, hexType:"", size: null, top: 50, left: 50, main_top: 10, main_left: 0, style: "background-image:url("+chest_img+");"},
+                        {id: 3, hexType:"", size: null, top: 30, left: 50, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
+                        {id: 4, hexType:"hand", size: null, top: 30, left: 50, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
+                        {id: 5, hexType:"", size: null, top: 50, left: 50, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
                         
                                                 
 $: main_obj = location_options[0];
@@ -45,6 +45,7 @@ function handleClickOption(obj) {
     }
     main_obj = obj;
     is_active = obj.id;
+    hexType = obj.hexType;
 }
 
 function setPreset(name) {
@@ -77,12 +78,12 @@ onMount(() => {
 <Router>
     <div class="scroll-box">
         {#each location_options as option}
-            <button class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
-                <div style={"position: absolute; top: "+option.top+"%; left: "+option.left+"%;"}>
+            <button id={option.id} class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
+            <div style={"position: absolute; top: "+option.top+"%; left: "+option.left+"%;transform:translate(-50%,-50%);"}>
                     {#if (is_active == option.id)}
-                        <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize=.05 isPreset= true/>
+                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} arraySize=10 isPreset= true/>
                     {:else}
-                        <Hexagons arraySize=.05 isPreset= true/>
+                        <Hexagons arrayType={option.hexType} arraySize=10 isPreset= true/>
                     {/if}
                 </div>
             </button>
@@ -90,8 +91,8 @@ onMount(() => {
     </div>
 
     <div class="virtual-touch" >
-        <div class="op-button" style={""+main_obj.style+"background-size: 200% 200%;"}>
-            <div style={"position: relative; top: "+main_obj.main_top+"%; left: "+main_obj.main_left+"%;"}>
+        <div class="op-button" style={"position: relative;"+main_obj.style+"background-size: 200% 200%;"}>
+            <div style={"position: absolute; top: "+main_obj.top+"%; left: "+main_obj.left+"%; transform:translate(-50%,-50%);"}>
                 <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize={main_obj.size} presetName={presetName} isPreset={usePreset}/>
             </div>
         </div>
@@ -115,8 +116,8 @@ onMount(() => {
 
         padding: 0em;
         margin: 0em;
-        margin-left: 3em;
-        margin-right: 3em;
+        margin-left: 0%;
+        margin-right: 0%;
 
         display: inline-block;
         vertical-align: top;
@@ -137,7 +138,8 @@ onMount(() => {
         margin: 0em;
     }
     .virtual-touch{
-        width: 67%;
+        
+        width: 75%;
         height: 90%;
 
         display: inline-block;
