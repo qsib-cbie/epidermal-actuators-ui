@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, is_success, is_connected, OP_Mode } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op, is_success, is_connected} from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -31,7 +31,8 @@ $: connectionAttempt = (async () => {
 
 // MARK: Antenna Configuration
 // Add a feature to stop the RF field.
-
+$: fieldState = 1; //defualt on
+$: fieldStateString = fieldState === 1 ? "Off" : "On";
 $: rfPower = 4;
 $: activeRfPower = 0;
 $: configuring = false;
@@ -41,7 +42,30 @@ $: rf_command = `{ "SetRadioFreqPower": { "power_level": ${rfPower}} }`
 const reset_command = '{ "SystemReset": { } }';
 
 $: configureAttempt = {};
-//Need system reset after sending this command?
+
+function handleRfField(Com) {
+    let stateString;
+    if (fieldState) {
+        console.log("Turn RF field OFF");
+        fieldState = 0;
+        stateString = "Off";
+    } else {
+        console.log("Turn RF field ON");
+        fieldState = 1;
+        stateString = "On";
+    }
+    let field_power_command = `{ "RfFieldState": { "state": ${fieldState} } }`;
+    console.log(fieldState);
+    console.log(field_power_command);
+    (async () => {
+        return await Com.hitEndpoint(endpoint, nopRoute, field_power_command);
+    })().then(result => {
+        $message = "Field is "+stateString;
+    }).catch(error => {
+        $message = error;
+    });
+}
+
 function handleClickRfPower() {
     configureAttempt = (async () => {
         configuring = true;
@@ -80,27 +104,32 @@ function handleClickRfPower() {
 
 // MARK: Speciy Timer Config
 
-$: lfPeriod = 500;
+$: lfPeriod = 2000;
 $: lfDutyCycle = 50;
-$: hfPeriod = 250;
-$: hfDutyCycle = 100;
-$: single_pulse_duration = 500;
+$: hfPeriod = 200;
+$: hfDutyCycle = 50;
+$: single_pulse_duration = 1000;
+$: single_pulse_pause = 250;
 $: singlePulse = false;
 $: {
     if(singlePulse) {
-        $OP_Mode = 0x05;
+        $command = 0x04;
     } else {
-        $OP_Mode = 0x02;
+        $command = 0x02;
     }
    }
-
-$: $single_pulse_block = [single_pulse_duration & 0x000000ff,(single_pulse_duration & 0x0000ff00) >> 8,0,0];
+/*Timing blocks are 3 bytes each. For each block the first byte has the 8 msb of the first value, second byte has the 4lsb of the first value and the 4msb of the second value, the third byte has the 8lsb of the second value
+    Ex: For single pulse | t_pulse(8 msb) | t_pulse(4lsb) and t_pause(4msb) | t_pause(8lsb) | 
+    If t_pulse = 1000ms (0x3E8) and t_pause = 250ms(0FA): |3E |80| FA|
+*/
+        
+$: $single_pulse_block = [(single_pulse_duration & 0x00000ff0) >> 4,(single_pulse_duration & 0x0000000f) << 4 | (single_pulse_pause & 0x00000f00)>>8,single_pulse_pause & 0x000000ff];
 //set freq to 1kHz (start with 200Hz)
 $: hfOn = hfPeriod * (hfDutyCycle/100);
-$: $hf_block = [hfOn & 0x000000ff, (hfOn & 0x0000ff00) >> 8, hfPeriod & 0x000000ff,(hfPeriod & 0x0000ff00) >> 8];
+$: $hf_block = [(hfOn & 0x00000ff0) >> 4, (hfOn & 0x0000000f) << 4 | (hfPeriod & 0x00000f00)>>8, hfPeriod & 0x000000ff];
 
 $: lfOn = lfPeriod * (lfDutyCycle/100);
-$: $lf_block = [lfOn & 0x000000ff, (lfOn & 0x0000ff00) >> 8, lfPeriod & 0x000000ff, (lfPeriod & 0x0000ff00) >> 8];
+$: $lf_block = [(lfOn & 0x00000ff0) >> 4, (lfOn & 0x0000000f) << 4 | (lfPeriod & 0x00000f00)>>8, lfPeriod & 0x000000ff];
 
 function setTimingBlock(config) {
     if (config == "infer") {
@@ -121,6 +150,13 @@ function handleCollapse() {
     } else {
         configContent.style.display = "block";
     }
+}
+
+function handleSetTiming(Hex) {
+    let temp = $cmd_op;
+    $cmd_op = 0x00;
+    Hex.sendCommandBlocks();
+    $cmd_op = temp;
 }
 </script>
 
@@ -145,7 +181,7 @@ function handleCollapse() {
             {/await}
             </div>    
             <h2><img id="antenna_icon" src="images/antenna_icon.png" alt="Antenna Icon"/> Antenna Configuration</h2>
-
+            <button on:click={handleRfField(Com)}>Turn RF Field {fieldStateString}</button>
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
             <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
@@ -165,7 +201,11 @@ function handleCollapse() {
             <Devices />
             <br/>
             <h2><img id="haptic_icon" src="images/haptic_icon.png" alt="Haptic Icon"/>Haptic Configuration</h2>
-            <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+            <button on:click={Hex.AllOff()}>All Off</button>
+            <br/>
+            <button on:click={handleSetTiming(Hex)}>Set Timing</button>
+
+            <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 
             <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
             <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
