@@ -4,6 +4,7 @@ import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
 import { message } from "../../stores/stores.js";
 import Status from '../Utils/Status.svelte';
+import { onMount } from 'svelte';
 
 let winSize = window.innerHeight/window.innerWidth;
 let hexActive;
@@ -23,14 +24,15 @@ let upper_arm_img = "images/upper_arm.png";
 let location_options = [{id: 0, size: winSize, top: 50, left: 32, main_top: 20, main_left: 0, style: "background-image:url("+back_img+");"},
                         {id: 1, size: winSize-.2, top: 20, left: 40, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
                         {id: 2, size: winSize, top: 30, left: 32, main_top: 10, main_left: 0, style: "background-image:url("+chest_img+");"},
-                        {id: 3, size: winSize-.4, top: 5, left: 30, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
+                        {id: 3, size: winSize-.2, top: 5, left: 30, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
                         {id: 4, size: winSize-.2, top: 10, left: 32, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
-                        {id: 5, size: winSize-.3, top: 30, left: 32, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
+                        {id: 5, size: winSize-.2, top: 30, left: 32, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
                         
                                                 
 $: main_obj = location_options[0];
 
-let preset_options = [{id:"FlashAll", label:"Flash All"}, 
+let preset_options = [{id:"Manual", label:"Manual"},
+                      {id:"FlashAll", label:"Flash All"}, 
                       {id:"sweep", label:"Sweep"}, 
                       {id:"ABCs", label:"ABCs"}];
 
@@ -38,7 +40,8 @@ function handleClickOption(obj) {
     usePreset = false;
     if (lastPreset) {
         lastPreset.style = "";
-        lastPreset = null;
+        lastPreset = document.getElementById("Manual");
+        lastPreset.style =  "border: .2em solid blue;";
     }
     main_obj = obj;
     is_active = obj.id;
@@ -48,15 +51,27 @@ function setPreset(name) {
     presetName = name;
     let element = document.getElementById(name);
     if (lastPreset) {lastPreset.style = "";}
+    if (name === "Manual") {
+        element.style =  "border: .2em solid blue;";
+        usePreset = false;
+        lastPreset = element;
+    }
     if (lastPreset == element) {
         usePreset = false;
-        lastPreset = null;
-    } else {
+        element = document.getElementById("Manual");
+        element.style =  "border: .2em solid blue;";
+        lastPreset = element;
+    } else if(name !== "Manual") {
         usePreset = true;
         element.style =  "border: .2em solid blue;";
         lastPreset = element;
     }
 }
+
+onMount(() => {
+    lastPreset = document.getElementById("Manual");
+    lastPreset.style = "border: .2em solid blue;";
+});
 </script>
 <Status/>
 <Router>
