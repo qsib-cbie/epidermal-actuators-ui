@@ -115,8 +115,8 @@ onMount(() => {
 
         padding: 0em;
         margin: 0em;
-        margin-left: 2em;
-        margin-right: 2em;
+        margin-left: 3em;
+        margin-right: 3em;
 
         display: inline-block;
         vertical-align: top;
@@ -137,7 +137,7 @@ onMount(() => {
         margin: 0em;
     }
     .virtual-touch{
-        width: 65%;
+        width: 67%;
         height: 90%;
 
         display: inline-block;
