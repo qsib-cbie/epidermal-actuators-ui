@@ -16,8 +16,7 @@ let success = '{ "Success": { } }';
 let configContent;
 
 // MARK: Server Configuration
-
-$: hostname = "localhost";
+let hostname;
 $: port = "8088";
 $: route = "api_index";
 
@@ -199,7 +198,7 @@ function handleSetTiming(Hex) {
         
         <div class='col-25'>
             <Devices />
-            <br/>
+            
             <h2><img id="haptic_icon" src="images/haptic_icon.png" alt="Haptic Icon"/>Haptic Configuration</h2>
             <button on:click={Hex.AllOff()}>All Off</button>
             <button on:click={handleSetTiming(Hex)}>Set Timing</button>
@@ -237,7 +236,7 @@ function handleSetTiming(Hex) {
         display: inline-block;
         vertical-align: top;
 
-        margin: 2em;
+        margin: 0em 2em 2em 2em;
         padding: 1em;
     }
     
