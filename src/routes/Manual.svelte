@@ -202,7 +202,6 @@ function handleSetTiming(Hex) {
             <br/>
             <h2><img id="haptic_icon" src="images/haptic_icon.png" alt="Haptic Icon"/>Haptic Configuration</h2>
             <button on:click={Hex.AllOff()}>All Off</button>
-            <br/>
             <button on:click={handleSetTiming(Hex)}>Set Timing</button>
 
             <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
@@ -217,7 +216,7 @@ function handleSetTiming(Hex) {
         <div class="col-25">
             <h2 style="text-align: center;"><img id="device_test_icon" src="images/device_test_icon.png" alt="Device Test Icon"/>  Device Test</h2>
             <div style="margin-top: 7em;">
-                <Hexagons arrayType="stich" bind:this={Hex}/>
+                <Hexagons arrayType="stich" arraySize=.5 bind:this={Hex}/>
             </div>
         </div>
     </div>

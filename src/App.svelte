@@ -42,7 +42,7 @@
 
   <Router url="{url}">
 	
-	<div style={"text-align:center; height:"+ window.innerHeight*.87+"px;"}>
+	<div style={"height:"+ window.innerHeight*.87+"px;"}>
 	  <Route path="/*" component="{Manual}" />
 	  <Route path="automatic/*" component="{Automatic}" />
 	</div>

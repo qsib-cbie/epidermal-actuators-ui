@@ -117,15 +117,15 @@ const hexagons = [
   { id: 5, dev:0, row: 1, col: 2 },
   { id: 6, dev:0, row: 1, col: 4 },
   { id: 7, dev:0, row: 1, col: 6 },
-  { id: 8, dev:1, row: 1, col: 8 },
-  { id: 9, dev:1, row: 1, col: 10 },
+  { id: 8, dev:0, row: 1, col: 8 },
+  { id: 9, dev:0, row: 1, col: 10 },
 
   // Row 2
-  { id: 10, dev:1, row: 2, col: 1 },
-  { id: 11, dev:1, row: 2, col: 3 },
-  { id: 12, dev:1, row: 2, col: 5 },
-  { id: 13, dev:1, row: 2, col: 7 },
-  { id: 14, dev:1, row: 2, col: 9 },
+  { id: 10, dev:0, row: 2, col: 1 },
+  { id: 11, dev:0, row: 2, col: 3 },
+  { id: 12, dev:0, row: 2, col: 5 },
+  { id: 13, dev:0, row: 2, col: 7 },
+  { id: 14, dev:0, row: 2, col: 9 },
 
   // Row 3
   { id: 15, dev:0, row: 3, col: 0 },

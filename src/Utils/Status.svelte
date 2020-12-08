@@ -2,7 +2,7 @@
 import {is_success, is_connected} from "../../stores/stores.js"
 </script>
 
-<div style={"position: absolute; top: "+window.innerHeight*.80+"px; left: "+window.innerWidth*.65+"px;"}>   
+<div style={"position: absolute; top: "+window.innerHeight*.80+"px; left: "+window.innerWidth*.75+"px;"}>   
     <div class="status">
         <h2>Status:  
             {#if $is_connected}

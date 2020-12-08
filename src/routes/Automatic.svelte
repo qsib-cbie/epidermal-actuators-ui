@@ -1,8 +1,6 @@
 <script>
 import { Router, Link, Route } from 'svelte-routing';
-import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
-import { message } from "../../stores/stores.js";
 import Status from '../Utils/Status.svelte';
 import { onMount } from 'svelte';
 
@@ -21,12 +19,12 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-let location_options = [{id: 0, hexType:"", size: null, top: 70, left: 50, main_top: 25, main_left: 0, style: "background-image:url("+back_img+");"},
-                        {id: 1, hexType:"", size: null, top: 40, left: 60, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
-                        {id: 2, hexType:"", size: null, top: 50, left: 50, main_top: 10, main_left: 0, style: "background-image:url("+chest_img+");"},
-                        {id: 3, hexType:"", size: null, top: 30, left: 50, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
-                        {id: 4, hexType:"hand", size: null, top: 30, left: 50, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
-                        {id: 5, hexType:"", size: null, top: 50, left: 50, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
+let location_options = [{id: 0, hexType:"", size: null, top: 70, left: 50, style: "background-image:url("+back_img+");"},
+                        {id: 1, hexType:"", size: null, top: 40, left: 60, style: "background-image:url("+upper_arm_img+");"},
+                        {id: 2, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+chest_img+");"},
+                        {id: 3, hexType:"", size: null, top: 30, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%; "},
+                        {id: 4, hexType:"hand", size: null, top: 30, left: 50, style: "background-image:url("+hand_img+"); background-position: 50% 30%;"},
+                        {id: 5, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+shoulder_img+");"},];
                         
                                                 
 $: main_obj = location_options[0];
@@ -75,7 +73,7 @@ onMount(() => {
 });
 </script>
 <Status/>
-<Router>
+<div style="text-align:center; height:100%;">
     <div class="scroll-box">
         {#each location_options as option}
             <button id={option.id} class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
@@ -107,7 +105,7 @@ onMount(() => {
             </div>    
         {/each}
     </div>
-</Router>
+</div>
 
 <style>
     .scroll-box{
