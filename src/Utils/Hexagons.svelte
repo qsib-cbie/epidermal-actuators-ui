@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -9,11 +9,10 @@ export let test_ui = false;
 
 export let activeHexagon = [];
 export let orientation = "horizontal";
-export let arraySize = "normal";
+export let arraySize = null;
 export let isPreset = false;
 export let presetName = "";
-export let backgroundAsset = "";
-export let className = "col-50";
+export let arrayType = "full";
 
 let Com;
 let pendingTimeout;
@@ -32,24 +31,37 @@ let initialWidth = window.innerWidth;
 let strokeWidth;
 let target;
 let moveable;
+let hexagonsLayout;
 let hexagonTypes = [{id:"full", text: "Full Hexagon Array"},
-                    {id:"stichable", text:"Stichable Hexagons"}];
+                    {id:"stichable", text:"Stichable Hexagons"},
+                    {id:"thermal", text:"Thermal Array"}];
 
-$: arrayType = "full";
-$: hexagonsLayout = arrayType === "full" ? hexagons : stichableHexagons;
-$: view_scale = 1;
+$: {switch(arrayType){
+    case "stich":
+        hexagonsLayout = stichableHexagons;
+        break;
+    case "hand":
+        hexagonsLayout = hand_hexagons;
+        break;
+    default:
+        hexagonsLayout = hexagons;
+}}
+$: view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);
 $: initialRotation = orientation === "horizontal" ? 0 : -90;
 $: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
 $: {
-    if (arraySize == "small") {
-        view_scale = .05;
-        strokeWidth = "1px";
+    if (arraySize) {
+        view_scale = view_scale/arraySize;
+        if (view_scale > .3) {
+            strokeWidth = "5px";
+        } else {
+            strokeWidth = "1px"
+        }
     }else {
-        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth)/3;
+        view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);
         strokeWidth = "5px";
     }
    }
-$: setBackground = "background-image:url("+backgroundAsset+"); background-position: center; background-color: white background-repeat: no-repeat; background-size: 275% 275%;";
 $: setStyle = "transform: "+setRotationstyle+";";
 
 $: mouseDown = false;
@@ -68,6 +80,7 @@ const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 onMount(() => {
   window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
   boundRect = target.getBoundingClientRect();
+  console.log(view_scale);
 });
 
 function getBytesForActuator(actuators) {
@@ -93,66 +106,116 @@ function buildCommandBlocks(active) {
 
 const hexagons = [
   // Row 0
-  { id: 0, row: 0, col: 1 },
-  { id: 1, row: 0, col: 3 },
+  { id: 0, dev:0, row: 0, col: 1 },
+  { id: 1, dev:0, row: 0, col: 3 },
   // filler
-  { id: 2, row: 0, col: 7 },
-  { id: 3, row: 0, col: 9 },
+  { id: 2, dev:0, row: 0, col: 7 },
+  { id: 3, dev:0, row: 0, col: 9 },
 
   // Row 1
-  { id: 4, row: 1, col: 0 },
-  { id: 5, row: 1, col: 2 },
-  { id: 6, row: 1, col: 4 },
-  { id: 7, row: 1, col: 6 },
-  { id: 8, row: 1, col: 8 },
-  { id: 9, row: 1, col: 10 },
+  { id: 4, dev:0, row: 1, col: 0 },
+  { id: 5, dev:0, row: 1, col: 2 },
+  { id: 6, dev:0, row: 1, col: 4 },
+  { id: 7, dev:0, row: 1, col: 6 },
+  { id: 8, dev:1, row: 1, col: 8 },
+  { id: 9, dev:1, row: 1, col: 10 },
 
   // Row 2
-  { id: 10, row: 2, col: 1 },
-  { id: 11, row: 2, col: 3 },
-  { id: 12, row: 2, col: 5 },
-  { id: 13, row: 2, col: 7 },
-  { id: 14, row: 2, col: 9 },
+  { id: 10, dev:1, row: 2, col: 1 },
+  { id: 11, dev:1, row: 2, col: 3 },
+  { id: 12, dev:1, row: 2, col: 5 },
+  { id: 13, dev:1, row: 2, col: 7 },
+  { id: 14, dev:1, row: 2, col: 9 },
 
   // Row 3
-  { id: 15, row: 3, col: 0 },
-  { id: 16, row: 3, col: 2 },
-  { id: 17, row: 3, col: 4 },
-  { id: 18, row: 3, col: 6 },
-  { id: 19, row: 3, col: 8 },
-  { id: 20, row: 3, col: 10 },
+  { id: 15, dev:0, row: 3, col: 0 },
+  { id: 16, dev:0, row: 3, col: 2 },
+  { id: 17, dev:0, row: 3, col: 4 },
+  { id: 18, dev:0, row: 3, col: 6 },
+  { id: 19, dev:0, row: 3, col: 8 },
+  { id: 20, dev:0, row: 3, col: 10 },
 
   // Row 4
-  { id: 21, row: 4, col: 1 },
-  { id: 22, row: 4, col: 3 },
-  { id: 23, row: 4, col: 5 },
-  { id: 24, row: 4, col: 7 },
-  { id: 25, row: 4, col: 9 },
+  { id: 21, dev:0, row: 4, col: 1 },
+  { id: 22, dev:0, row: 4, col: 3 },
+  { id: 23, dev:0, row: 4, col: 5 },
+  { id: 24, dev:0, row: 4, col: 7 },
+  { id: 25, dev:0, row: 4, col: 9 },
 
   // Row 5
-  { id: 26, row: 5, col: 0 },
-  { id: 27, row: 5, col: 2 },
-  { id: 28, row: 5, col: 4 },
-  { id: 29, row: 5, col: 6 },
-  { id: 30, row: 5, col: 8 },
-  { id: 31, row: 5, col: 10 },
+  { id: 26, dev:0, row: 5, col: 0 },
+  { id: 27, dev:0, row: 5, col: 2 },
+  { id: 28, dev:0, row: 5, col: 4 },
+  { id: 29, dev:0, row: 5, col: 6 },
+  { id: 30, dev:0, row: 5, col: 8 },
+  { id: 31, dev:0, row: 5, col: 10 },
 
   // Row 6
-  { id: 32, row: 6, col: 1 },
-  { id: 33, row: 6, col: 3 },
+  { id: 32, dev:0, row: 6, col: 1 },
+  { id: 33, dev:0, row: 6, col: 3 },
   // filler
-  { id: 34, row: 6, col: 7 },
-  { id: 35, row: 6, col: 9 },];
+  { id: 34, dev:0, row: 6, col: 7 },
+  { id: 35, dev:0, row: 6, col: 9 },
+];
 
 const stichableHexagons = [
-    {id: 0, row: 0, col: 1},
-    {id: 1, row: 0, col: 3},
-    {id: 2, row: 1, col: 0},    
-    {id: 3, row: 1, col: 2},
-    {id: 4, row: 1, col: 4},
-    {id: 5, row: 2, col: 1},
-    {id: 6, row: 2, col: 3},];  
+    {id: 0, dev:0, row: 0, col: 1},
+    {id: 1, dev:0, row: 0, col: 3},
+    {id: 2, dev:0, row: 1, col: 0},    
+    {id: 3, dev:0, row: 1, col: 2},
+    {id: 4, dev:0, row: 1, col: 4},
+    {id: 5, dev:0, row: 2, col: 1},
+    {id: 6, dev:0, row: 2, col: 3},
+];  
 
+const thermalHexagons = [
+    {id: 0, row: 0, col: 2},
+    {id: 1, row: 0, col: 4},
+    {id: 2, row: 0, col: 6},
+    {id: 3, row: 1, col: 1},
+    {id: 4, row: 1, col: 3},
+    {id: 5, row: 1, col: 5},
+    {id: 6, row: 1, col: 7},
+    {id: 7, row: 2, col: 0},
+    {id: 8, row: 2, col: 2},
+    {id: 9, row: 2, col: 4},
+    {id: 10, row:2, col: 6},
+    {id: 11, row: 2, col: 8},
+    {id: 12, row: 3, col: 1},
+    {id: 13, row: 3, col: 3},
+    {id: 14, row: 3, col: 5},
+    {id: 15, row: 3, col: 7},
+    {id: 16, row: 4, col: 2},
+    {id: 17, row: 4, col: 4},
+    {id: 18, row: 4, col: 6},
+];
+
+const hand_hexagons = [
+  { id: 0, dev:0, row:0, col:5},
+  { id: 1, dev:0, row:0, col:7},
+  { id: 2, dev:0, row:1, col:4},
+  { id: 3, dev:0, row:1, col:6},
+  { id: 4, dev:0, row:1, col:8},
+  { id: 5, dev:0, row:2, col:5},
+  { id: 6, dev:0, row:2, col:7},
+
+  { id: 0, dev:1, row:2, col:1},
+  { id: 1, dev:1, row:2, col:3},
+  { id: 2, dev:1, row:3, col:0},
+  { id: 3, dev:1, row:3, col:2},
+  { id: 4, dev:1, row:3, col:4},
+  { id: 5, dev:1, row:4, col:1},
+  { id: 6, dev:1, row:4, col:3},
+
+  { id: 0, dev:2, row:3, col:6},
+  { id: 1, dev:2, row:3, col:8},
+  { id: 2, dev:2, row:4, col:5},
+  { id: 3, dev:2, row:4, col:7},
+  { id: 4, dev:2, row:4, col:9},
+  { id: 5, dev:2, row:5, col:6},
+  { id: 6, dev:2, row:5, col:8},
+
+];
 $: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
 $: baseSpacing = 15*view_scale;
@@ -162,10 +225,10 @@ $: width = Math.sqrt(3) * hexagonSideLength;
 $: height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
-$: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
+$: hexagonsWithoutPixels = hexagonsLayout.map(({id, dev, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    return {id, row, col, x, y}
+    return {id, dev, row, col, x, y}
 });
 
 $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
@@ -175,7 +238,7 @@ $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     };
 });
 
-$: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
+$: drawableHexagons = hexagonsLayout.map(({id, dev, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -190,9 +253,9 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = activeHexagon.includes(id) ? "mediumseagreen" : "black";
+    const color = (activeHexagon.includes(id) && dev == $activeDevice ) ? "mediumseagreen" : "black";
 
-    return {id, x, y, width, height, points: points.join(' '), color};
+    return {id, dev, x, y, width, height, points: points.join(' '), color};
 });
 
 export function sendCommandBlocks() {
@@ -201,11 +264,14 @@ export function sendCommandBlocks() {
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
+            $is_success = false;
         } else {
             $message = "Sent Command Successfully";
+            $is_success = true;
         }
         return result;
     }).catch(error => {
+        $is_success = false;
         $message = error;
         activeHexagon = [];
         throw error;
@@ -231,6 +297,8 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
+                $activeDevice = drawableHexagons[i].dev;
+                buildCommandBlocks(activeHexagon);
             }
         }
     }
@@ -394,8 +462,7 @@ const sleep = (milliseconds) => {
 
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
 
-<div class="full-container" style={setBackground}>
-    {#if arraySize == "normal"}
+    <!-- {#if arraySize == "normal"}
         <div class="col-5">
             <select bind:value={arrayType}>
                 {#each hexagonTypes as type}
@@ -411,10 +478,10 @@ const sleep = (milliseconds) => {
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
         </div>
-    {/if}
+    {/if} -->
 
-    <div class={className}>
-        <svg  version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
+    <div class="hexagons">
+        <svg version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
             height={`${viewBox.y}px`}
             viewBox={`0 0 ${viewBox.x} ${viewBox.y}`}
@@ -438,9 +505,9 @@ const sleep = (milliseconds) => {
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        {#if arraySize == "normal"}
+                        <!-- {#if arraySize == "normal"}
                             <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                        {/if}
+                        {/if} -->
                     </g>
             {/each}
         </svg>
@@ -451,7 +518,6 @@ const sleep = (milliseconds) => {
             <p>Test: {$block0_31}, {$block32_63}, {$block64_95}, {$block96_127}</p>
         {/if}
     </div>
-</div>
 
 <Moveable target={target} bind:this={moveable} className="moveable"
     rotatable={true} throttleRotate={0} rotatePosition="top"
@@ -460,69 +526,21 @@ const sleep = (milliseconds) => {
         frame.rotate = beforeRotate;
         target.style.transform = `rotate(${beforeRotate}deg)`;
     }}
-    snappable={true}
-    verticalGuidelines={[0,200,400]}
-    horizontalGuidelines={[0,200,400]}
-    snapThreshold={5}
-    isDisplaySnapDigit={true}
-    snapGap={true}
-    snapElement={true}
-    snapVertical={true}
-    snapHorizontal={true}
-    snapCenter={false}
-    snapDigit={0}
-    
-
-    draggable={false}
-    throttleDrag={0}
-    startDragRotate={0}
-    throttleDragRotate={0}
-    zoom={1}
-    origin={true}
-    padding={{"left":0,"top":0,"right":0,"bottom":0}}
-    on:dragStart={({ detail: { set } }) => {
-        set(frame.translate);
-    }}
-    on:drag={({ detail: { target, beforeTranslate } }) => {
-        frame.translate = beforeTranslate;
-        target.style.transform = `translate(${beforeTranslate[0]}px, ${beforeTranslate[1]}px)`;
-    }}
-    on:dragEnd={({ detail: { target, isDrag, clientX, clientY }}) => {
-        console.log("onDragEnd", target, isDrag);
-    }}
 />
 
 
 <style>
-    .col-5 {
-        width: 20%;
-        height: 10%;
-        display: inline-block;
-        vertical-align: top;
-        margin: 0em auto;
-        margin-top: 3em;
-        font-size: large;
-    }
-
-    .col-50 {
-        width: 50%;
+    .hexagons {
+        width: 100%;
         height: 100%;
-
-        display: inline-block;
-        vertical-align: top;
+        text-align: center;
 
         margin: 0em auto;
-        margin-top: 3em;
-
-        padding: 1em;
+        /* margin-top: 3em; */
+        padding: 0em;
     }
     svg {
         cursor: draggable;
-    }
-    .full-container {
-        width: 100%;
-        height: 100%;
-        vertical-align: middle;
     }
     :global(.moveable) {
         z-index: 10;

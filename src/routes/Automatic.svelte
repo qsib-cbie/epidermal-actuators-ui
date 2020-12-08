@@ -3,127 +3,149 @@ import { Router, Link, Route } from 'svelte-routing';
 import Devices from '../Utils/Devices.svelte';
 import Hexagons from '../Utils/Hexagons.svelte';
 import { message } from "../../stores/stores.js";
+import Status from '../Utils/Status.svelte';
+import { onMount } from 'svelte';
 
-let numArray = 1;
-let array = [{id:0, name:"original"}];
+let winSize = window.innerHeight/window.innerWidth;
+let hexActive;
+let hexType;
+let is_active = 0;
+let presetName;
+let usePreset = false;
+let lastPreset;
 
-$: img1 = "images/preset_chest.png";
+let back_img = "images/back.png";
+let chest_img = "images/chest.png";
+let hand_img = "images/hand.png";
+let shoulder_img = "images/shoulder.png";
+let thigh_img = "images/thigh.png";
+let upper_arm_img = "images/upper_arm.png";
 
-function handleAddActuators() { 
-    array[numArray] = {id: numArray, name: "array "+numArray.toString(), type: "stich"};
-    numArray++;
+let location_options = [{id: 0, hexType:"", size: null, top: 70, left: 50, main_top: 25, main_left: 0, style: "background-image:url("+back_img+");"},
+                        {id: 1, hexType:"", size: null, top: 40, left: 60, main_top: 10, main_left: 10, style: "background-image:url("+upper_arm_img+");"},
+                        {id: 2, hexType:"", size: null, top: 50, left: 50, main_top: 10, main_left: 0, style: "background-image:url("+chest_img+");"},
+                        {id: 3, hexType:"", size: null, top: 30, left: 50, main_top: 5, main_left: 3, style: "background-image:url("+thigh_img+"); background-position: 10%; "},
+                        {id: 4, hexType:"hand", size: null, top: 30, left: 50, main_top: 3, main_left: 2, style: "background-image:url("+hand_img+");"},
+                        {id: 5, hexType:"", size: null, top: 50, left: 50, main_top: 30, main_left: 0, style: "background-image:url("+shoulder_img+");"},];
+                        
+                                                
+$: main_obj = location_options[0];
+
+let preset_options = [{id:"Manual", label:"Manual"},
+                      {id:"FlashAll", label:"Flash All"}, 
+                      {id:"sweep", label:"Sweep"}, 
+                      {id:"ABCs", label:"ABCs"}];
+
+function handleClickOption(obj) {
+    usePreset = false;
+    if (lastPreset) {
+        lastPreset.style = "";
+        lastPreset = document.getElementById("Manual");
+        lastPreset.style =  "border: .2em solid blue;";
+    }
+    main_obj = obj;
+    is_active = obj.id;
+    hexType = obj.hexType;
 }
 
+function setPreset(name) {
+    presetName = name;
+    let element = document.getElementById(name);
+    if (lastPreset) {lastPreset.style = "";}
+    if (name === "Manual") {
+        element.style =  "border: .2em solid blue;";
+        usePreset = false;
+        lastPreset = element;
+    }
+    if (lastPreset == element) {
+        usePreset = false;
+        element = document.getElementById("Manual");
+        element.style =  "border: .2em solid blue;";
+        lastPreset = element;
+    } else if(name !== "Manual") {
+        usePreset = true;
+        element.style =  "border: .2em solid blue;";
+        lastPreset = element;
+    }
+}
+
+onMount(() => {
+    lastPreset = document.getElementById("Manual");
+    lastPreset.style = "border: .2em solid blue;";
+});
 </script>
-
+<Status/>
 <Router>
-    <div class="col-25">
-        <h1>Automatic</h1>
-        <h2>Messages</h2>
-        <p>{$message}</p>
-        <Devices />
-        <button on:click={handleAddActuators}>Add Actuators</button>
+    <div class="scroll-box">
+        {#each location_options as option}
+            <button id={option.id} class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
+            <div style={"position: absolute; top: "+option.top+"%; left: "+option.left+"%;transform:translate(-50%,-50%);"}>
+                    {#if (is_active == option.id)}
+                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} arraySize=10 isPreset= true/>
+                    {:else}
+                        <Hexagons arrayType={option.hexType} arraySize=10 isPreset= true/>
+                    {/if}
+                </div>
+            </button>
+        {/each}
     </div>
-    <div class='scroll-box'>
-        <div class='option'>
-            <!-- Option 1 is default <div class="button" style="background-image:url({img1});"></div>  -->
-            <Link to="/"><button style="width: 100%;
-        height: 100%;
-        background-image:url({img1});
-        background-color: rgb(0, 119, 255);
-        background-size: 100% 100%;
-        background-position: center; 
-        background-repeat: no-repeat;
-        color: white;"><Hexagons arraySize="small" isPreset= true/></button></Link>
-        </div>
-        <div class='option' >
-            <Link to="OP2"><button class="button">Option 2 </button></Link> 
-            <!-- <Hexagons arraySize="small" orientation="vertical"/> -->
-        </div>
-        <div class='option' >
-            <Link to="OP3"><button class="button">Option 3</button></Link>
+
+    <div class="virtual-touch" >
+        <div class="op-button" style={"position: relative;"+main_obj.style+"background-size: 200% 200%;"}>
+            <div style={"position: absolute; top: "+main_obj.top+"%; left: "+main_obj.left+"%; transform:translate(-50%,-50%);"}>
+                <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize={main_obj.size} presetName={presetName} isPreset={usePreset}/>
+            </div>
         </div>
     </div>
 
-    <Route path="/">
-        <!-- backgroundAsset={img1} -->
-        <div class="col-50">
-            <Hexagons />
-        </div>
-    </Route>
-    <Route path="OP2">
-        <div class="col-50">
-            <Hexagons orientation="vertical"/>
-        </div>
-        
-    </Route>
-    <Route path="OP3">
-        <div class="col-50">
-            <Hexagons />
-        </div>
-    </Route>
+    <div class="scroll-box">
+        {#each preset_options as option}
+            <div class="option" style={"height: "+100/preset_options.length+"%"}>
+                <button id={option.id} class="op-button" on:click={() => setPreset(option.id)}>
+                    {option.label}
+                </button>
+            </div>    
+        {/each}
+    </div>
 </Router>
-
 
 <style>
     .scroll-box{
-        width: 15%;
-        height: 50em;
+        width: 10%;
+        height: 100%;
 
-        padding: 1em;
-        margin: 3em;
+        padding: 0em;
+        margin: 0em;
+        margin-left: 0%;
+        margin-right: 0%;
 
         display: inline-block;
         vertical-align: top;
-        overflow: auto;
-
-        outline: solid;
-        outline-color: black;
-        outline-width: .4em;
     }
 
     .option{
         width: 100%;
-        height: 30%;
-        margin-top: 1em;
-        margin-bottom: 1em;
-        outline: solid;
-        outline-color: black;
-        outline-width: .3em;
     }
 
-    .button{
+    .op-button{
         width: 100%;
         height: 100%;
-        background-image:url({img1});
-        background-color: rgb(0, 119, 255);
-        background-size: 100% 100%;
+        background-color: white;
+        background-size: 170% 100%;
         background-position: center; 
         background-repeat: no-repeat;
-        color: white;
+        color: black;
+        margin: 0em;
     }
-    .button:focus{
-        background-color: rgb(0, 183, 255);
-    }
-    
-    .col-25 {
-        width: 15%;
-        height: 100%;
+    .virtual-touch{
+        
+        width: 75%;
+        height: 90%;
 
         display: inline-block;
         vertical-align: top;
-
-        margin: 0px auto;
-        padding: 1em;
-    } 
-    .col-50 {
-        width: 50%;
-        height: 100%;
-
-        display: inline-block;
-        vertical-align: middle;
-
-        margin: 0em auto;
+        text-align: center;
+        margin: 0em;
         padding: 1em;
     }
 </style>

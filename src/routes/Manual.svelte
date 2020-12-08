@@ -1,9 +1,10 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op } from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op, is_success, is_connected} from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
+import Status from "../Utils/Status.svelte";
 import { onMount } from "svelte";
 
 // MARK: Message
@@ -13,7 +14,6 @@ let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
 let configContent;
-
 
 // MARK: Server Configuration
 
@@ -25,6 +25,7 @@ $: connectionAttempt = (async () => {
     return await Com.hitEndpoint(endpoint, nopRoute, success);
 })().then(() => {
     $message = "Connection Established";
+    $is_connected = true;
     });
 
 
@@ -79,15 +80,18 @@ function handleClickRfPower() {
             return await Com.hitEndpoint(endpoint, nopRoute, reset_command);
         })().then(result => {
             $message = "System Reset Complete"
+            $is_success = true;
             $devices = [];
             $activeDevice = 0;
             return result;
         }).catch(error => {
+            $is_success = false;
             $message = error;
             throw error;
         });
         return result;
     }).catch(error => {
+        $is_success = false;
         $message = error;
         configuring = false;
         antennaButtonMessage = "Re-attempt Configure";
@@ -158,17 +162,11 @@ function handleSetTiming(Hex) {
 
 <main>
 <Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:hostname bind:port bind:route/>
+<Status/>
 <Router>
-
     <div class='content-wrapper'>
-
         <div class='col-25'>
-            <h1>Manual Actuation</h1>
-            <h2>Messages</h2>
-            <p>{$message}</p>
-
-
-            <button class="collapsible" on:click={handleCollapse}><h2>Server Configuration</h2></button>
+            <button class="collapsible" on:click={handleCollapse}><h2><img id="serve_icon" src="images/server_icon.png" alt="Server Icon"/>  Server Configuration</h2></button>
             <div class="content" bind:this={configContent}>
             <label for="hostname"> Hostname </label> <input bind:value={hostname} />
             <label for="port"> Port </label> <input bind:value={port} />
@@ -182,9 +180,8 @@ function handleSetTiming(Hex) {
                 <p class="failure">FAILURE: {error} </p>
             {/await}
             </div>    
-            <h2>Antenna Configuration</h2>
+            <h2><img id="antenna_icon" src="images/antenna_icon.png" alt="Antenna Icon"/> Antenna Configuration</h2>
             <button on:click={handleRfField(Com)}>Turn RF Field {fieldStateString}</button>
-
             <label for="rfPower">RF Power (W)</label> <input bind:value={rfPower} />
             <button on:click={handleClickRfPower} disabled={antennaButtonDisabled}> {antennaButtonMessage} </button>
 
@@ -197,88 +194,54 @@ function handleSetTiming(Hex) {
             {:catch error }
                 <p class="failure">FAILURE: {error} </p>
             {/await}
-            <Devices />
 
         </div>
         
         <div class='col-25'>
-            <br/><br/><br/>
-            <h2>Timer Configuration</h2>
-
-            <Link to="/"><button>Specify Timer Config</button></Link>
+            <Devices />
             <br/>
-            <Link to="infer"><button>Infer Timer Config</button></Link>
-            <br/>
+            <h2><img id="haptic_icon" src="images/haptic_icon.png" alt="Haptic Icon"/>Haptic Configuration</h2>
             <button on:click={Hex.AllOff()}>All Off</button>
             <br/>
             <button on:click={handleSetTiming(Hex)}>Set Timing</button>
-            <Route path="/">
-                <h3>Manually Specify Timing</h3>
-                <div on:load="{setTimingBlock("hideLF")}"></div>
-                <Link to="showLF"><button>Specify Low Frequency</button></Link>
 
-                <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+            <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
                 
-                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={5} max={1000}/>
-                <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
-            </Route>
-            <Route path="infer">
-                <div on:load="{setTimingBlock("infer")}"></div>
-                <h3>Infer Specify Timing</h3>
-
-                <label for="intensity">Intensity: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
-            </Route>
-            <Route path="showLF">
-                <h3>Manually Specify Timing</h3>
-                <Link to="/"><button>Infer Low Frequency</button></Link>
-
-                <label for="single_pulse">Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
-                
-                <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
-                <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
-                
-                <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
-                <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
-                    
-            </Route>
+            <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
+            <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
+            
+            <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
+            <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
+            
         </div>
-        <div class="col-50">
-            <Hexagons bind:this={Hex}/>
+        <div class="col-25">
+            <h2 style="text-align: center;"><img id="device_test_icon" src="images/device_test_icon.png" alt="Device Test Icon"/>  Device Test</h2>
+            <div style="margin-top: 7em;">
+                <Hexagons arrayType="stich" bind:this={Hex}/>
+            </div>
         </div>
-      
-        
-  </div>
-
+    </div>
 </Router>
 
 </main>
+
 
 <style>
     .content-wrapper {
         margin: 0px auto;
     }
-
+    
     .col-25 {
-        width: 18%;
+        width: 25%;
         height: 100%;
 
         display: inline-block;
         vertical-align: top;
 
-        margin: 0px auto;
+        margin: 2em;
         padding: 1em;
     }
-    .col-50 {
-        width: 50%;
-        height: 100%;
-
-        display: inline-block;
-        vertical-align: middle;
-
-        margin: 0em auto;
-        padding: 1em;
-    }
-
+    
     p.success {
         color: green;
         font-size: medium;
