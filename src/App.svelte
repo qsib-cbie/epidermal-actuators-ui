@@ -46,7 +46,7 @@
 	  <Route path="/*" component="{Manual}" />
 	  <Route path="automatic/*" component="{Automatic}" />
 	</div>
-	<nav>
+	<nav style="text-align: center;">
 	  	<Link class="link-wrapper" to="/">
 			<button class="link-wrapper" on:click={() => link = 0} style={config_style}>
 				<div class="icon">

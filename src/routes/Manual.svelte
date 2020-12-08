@@ -215,7 +215,7 @@ function handleSetTiming(Hex) {
         <div class="col-25">
             <h2 style="text-align: center;"><img id="device_test_icon" src="images/device_test_icon.png" alt="Device Test Icon"/>  Device Test</h2>
             <div style="margin-top: 7em;">
-                <Hexagons arrayType="stich" arraySize=.5 bind:this={Hex}/>
+                <Hexagons arrayType="test" arraySize=.5 bind:this={Hex}/>
             </div>
         </div>
     </div>

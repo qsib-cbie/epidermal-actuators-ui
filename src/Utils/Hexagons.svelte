@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_block } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -13,6 +13,7 @@ export let arraySize = null;
 export let isPreset = false;
 export let presetName = "";
 export let arrayType = "full";
+export let is_active = true;
 
 let Com;
 let pendingTimeout;
@@ -42,6 +43,9 @@ $: {switch(arrayType){
         break;
     case "hand":
         hexagonsLayout = hand_hexagons;
+        break;
+    case "test":
+        hexagonsLayout = testingHexagons;
         break;
     default:
         hexagonsLayout = hexagons;
@@ -316,9 +320,7 @@ function findActiveHexagons(e) {
     if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
         if (activeHexagon.length != 0) {
             sendCommandBlocks();
-        } else {
-            AllOff();
-        }
+        } 
     }
     hexCache = activeHexagon;
 }
@@ -331,6 +333,7 @@ export async function AllOff() {
 }
 
 function handleTouchStart(e) { 
+    if (is_active) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     mouseDown = true;
@@ -358,9 +361,11 @@ function handleTouchStart(e) {
         //Interval needs to be based on timing settings so it doesn't overwrite the previous command
         resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50);
     }
+    }
 }
 
 function handleTouchMove(e) {
+    if (is_active) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     if(!mouseDown) {
@@ -387,9 +392,11 @@ function handleTouchMove(e) {
         Xend = e.offsetX;
         Yend = e.offsetY;
     }
+    }
 }
 
 function handleTouchEnd(e) {
+    if (is_active) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     if ($command > 3 ) hexCache = [];
@@ -449,6 +456,7 @@ function handleTouchEnd(e) {
         }
         sendCommandBlocks();
         $command = temp;
+    }
     }
 }
 

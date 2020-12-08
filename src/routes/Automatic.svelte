@@ -19,10 +19,10 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-let location_options = [{id: 0, hexType:"", size: null, top: 70, left: 50, style: "background-image:url("+back_img+");"},
+let location_options = [{id: 0, hexType:"", size: .6, top: 70, left: 50, style: "background-image:url("+back_img+"); background-position: 50% 80%;"},
                         {id: 1, hexType:"", size: null, top: 40, left: 60, style: "background-image:url("+upper_arm_img+");"},
                         {id: 2, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+chest_img+");"},
-                        {id: 3, hexType:"", size: null, top: 30, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%; "},
+                        {id: 3, hexType:"", size: null, top: 30, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%;"},
                         {id: 4, hexType:"hand", size: null, top: 30, left: 50, style: "background-image:url("+hand_img+"); background-position: 50% 30%;"},
                         {id: 5, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+shoulder_img+");"},];
                         
@@ -79,9 +79,9 @@ onMount(() => {
             <button id={option.id} class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
             <div style={"position: absolute; top: "+option.top+"%; left: "+option.left+"%;transform:translate(-50%,-50%);"}>
                     {#if (is_active == option.id)}
-                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} arraySize=10 isPreset= true/>
+                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} arraySize=10 is_active=false;/>
                     {:else}
-                        <Hexagons arrayType={option.hexType} arraySize=10 isPreset= true/>
+                        <Hexagons arrayType={option.hexType} arraySize=10 is_active=false;/>
                     {/if}
                 </div>
             </button>
@@ -144,6 +144,6 @@ onMount(() => {
         vertical-align: top;
         text-align: center;
         margin: 0em;
-        padding: 1em;
+        padding: 0em;
     }
 </style>
