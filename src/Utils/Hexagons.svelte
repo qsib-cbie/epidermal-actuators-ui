@@ -158,6 +158,16 @@ const hexagons = [
   { id: 35, dev:0, row: 6, col: 9 },
 ];
 
+const testingHexagons = [
+    {id: 0, dev:0, row: 0, col: 1},
+    {id: 1, dev:0, row: 0, col: 3},
+    {id: 4, dev:0, row: 1, col: 0},    
+    {id: 5, dev:0, row: 1, col: 2},
+    {id: 6, dev:0, row: 1, col: 4},
+    {id: 10, dev:0, row: 2, col: 1},
+    {id: 11, dev:0, row: 2, col: 3},
+];
+
 const stichableHexagons = [
     {id: 0, dev:0, row: 0, col: 1},
     {id: 1, dev:0, row: 0, col: 3},
@@ -166,7 +176,7 @@ const stichableHexagons = [
     {id: 4, dev:0, row: 1, col: 4},
     {id: 5, dev:0, row: 2, col: 1},
     {id: 6, dev:0, row: 2, col: 3},
-];  
+];
 
 const thermalHexagons = [
     {id: 0, row: 0, col: 2},
