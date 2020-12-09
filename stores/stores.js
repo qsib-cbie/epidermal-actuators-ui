@@ -17,6 +17,13 @@ export const block32_63 = writable([0,0,0,0]);
 export const block64_95 = writable([0,0,0,0]);
 export const block96_127 = writable([0,0,0,0]);
 
+export const lfPeriod = writable(2000);
+export const lfDutyCycle = writable(50);
+export const hfPeriod = writable(200);
+export const hfDutyCycle = writable(50);
+export const single_pulse_duration = writable(1000);
+export const single_pulse_pause = writable(250);
+
 export const single_pulse_block = writable([0, 0, 0]);
 export const hf_block = writable([0, 0, 0]);
 export const lf_block = writable([0, 0, 0]);

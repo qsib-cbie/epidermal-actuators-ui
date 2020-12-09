@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op, is_success, is_connected} from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op, is_success, is_connected,single_pulse_duration,single_pulse_pause,lfDutyCycle,lfPeriod,hfDutyCycle,hfPeriod} from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -103,12 +103,7 @@ function handleClickRfPower() {
 
 // MARK: Speciy Timer Config
 
-$: lfPeriod = 2000;
-$: lfDutyCycle = 50;
-$: hfPeriod = 200;
-$: hfDutyCycle = 50;
-$: single_pulse_duration = 1000;
-$: single_pulse_pause = 250;
+
 $: singlePulse = false;
 $: {
     if(singlePulse) {
@@ -122,24 +117,24 @@ $: {
     If t_pulse = 1000ms (0x3E8) and t_pause = 250ms(0FA): |3E |80| FA|
 */
         
-$: $single_pulse_block = [(single_pulse_duration & 0x00000ff0) >> 4,(single_pulse_duration & 0x0000000f) << 4 | (single_pulse_pause & 0x00000f00)>>8,single_pulse_pause & 0x000000ff];
+$: $single_pulse_block = [($single_pulse_duration & 0x00000ff0) >> 4,($single_pulse_duration & 0x0000000f) << 4 | ($single_pulse_pause & 0x00000f00)>>8,$single_pulse_pause & 0x000000ff];
 //set freq to 1kHz (start with 200Hz)
-$: hfOn = hfPeriod * (hfDutyCycle/100);
-$: $hf_block = [(hfOn & 0x00000ff0) >> 4, (hfOn & 0x0000000f) << 4 | (hfPeriod & 0x00000f00)>>8, hfPeriod & 0x000000ff];
+$: hfOn = $hfPeriod * ($hfDutyCycle/100);
+$: $hf_block = [(hfOn & 0x00000ff0) >> 4, (hfOn & 0x0000000f) << 4 | ($hfPeriod & 0x00000f00)>>8, $hfPeriod & 0x000000ff];
 
-$: lfOn = lfPeriod * (lfDutyCycle/100);
-$: $lf_block = [(lfOn & 0x00000ff0) >> 4, (lfOn & 0x0000000f) << 4 | (lfPeriod & 0x00000f00)>>8, lfPeriod & 0x000000ff];
+$: lfOn = $lfPeriod * ($lfDutyCycle/100);
+$: $lf_block = [(lfOn & 0x00000ff0) >> 4, (lfOn & 0x0000000f) << 4 | ($lfPeriod & 0x00000f00)>>8, $lfPeriod & 0x000000ff];
 
-function setTimingBlock(config) {
-    if (config == "infer") {
-        hfPeriod = 5;      
-        lfPeriod = 0xffff;
-        lfDutyCycle = 100;
-    } else if (config == "hideLF"){
-        lfPeriod = 0xffff;
-        lfDutyCycle = 100;           
-    }
-}
+// function setTimingBlock(config) {
+//     if (config == "infer") {
+//         hfPeriod = 5;      
+//         lfPeriod = 0xffff;
+//         lfDutyCycle = 100;
+//     } else if (config == "hideLF"){
+//         lfPeriod = 0xffff;
+//         lfDutyCycle = 100;           
+//     }
+// }
 onMount(() => {
     configContent.style.display = "block";
 });
@@ -203,13 +198,13 @@ function handleSetTiming(Hex) {
             <button on:click={Hex.AllOff()}>All Off</button>
             <button on:click={handleSetTiming(Hex)}>Set Timing</button>
 
-            <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {single_pulse_duration} ms</label> <input type="range" bind:value={single_pulse_duration} min={10} max={1000}/>
+            <label for="single_pulse"><input type="checkbox" bind:checked={singlePulse}/>Single Pulse Duration: {$single_pulse_duration} ms</label> <input type="range" bind:value={$single_pulse_duration} min={10} max={1000}/>
                 
-            <label for="lfperiod">Low Frequency Period: {lfPeriod} ms</label> <input type="range" bind:value={lfPeriod} min={10} max={1000}/>
-            <label for="lfdutycycle">Low Frequency Duty Cycle: {lfDutyCycle} %</label> <input type="range" bind:value={lfDutyCycle} min={0} max={100}/>
+            <label for="lfperiod">Low Frequency Period: {$lfPeriod} ms</label> <input type="range" bind:value={$lfPeriod} min={10} max={1000}/>
+            <label for="lfdutycycle">Low Frequency Duty Cycle: {$lfDutyCycle} %</label> <input type="range" bind:value={$lfDutyCycle} min={0} max={100}/>
             
-            <label for="hfperiod">High Frequency Period: {hfPeriod} ms</label> <input type="range" bind:value={hfPeriod} min={10} max={1000}/>
-            <label for="hfdutycycle">High Frequency Duty Cycle: {hfDutyCycle} %</label> <input type="range" bind:value={hfDutyCycle} min={0} max={100}/>
+            <label for="hfperiod">High Frequency Period: {$hfPeriod} ms</label> <input type="range" bind:value={$hfPeriod} min={10} max={1000}/>
+            <label for="hfdutycycle">High Frequency Duty Cycle: {$hfDutyCycle} %</label> <input type="range" bind:value={$hfDutyCycle} min={0} max={100}/>
             
         </div>
         <div class="col-25">

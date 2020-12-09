@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_block } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_pause, single_pulse_duration } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -467,9 +467,8 @@ async function display_preset(name) {
         if (name == item.name) {
             for (let a of item.array) {
                 activeHexagon = a;
-                await sleep(500);
-                console.log($single_pulse_block[0] << 4 | $single_pulse_block[1],$single_pulse_block[2]);
-                //await sleep($single_pulse_block[])
+                await sleep($single_pulse_duration);
+                // console.log($single_pulse_duration);
             }
         }
     }
