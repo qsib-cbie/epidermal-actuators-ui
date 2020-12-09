@@ -83,8 +83,6 @@ const frame = {rotate: 0, translate: [0,0], scale: [1,1]};
 
 onMount(() => {
   window.addEventListener("resize",() => {winWidth = window.innerWidth; winHeight = window.innerHeight;})
-  boundRect = target.getBoundingClientRect();
-  console.log(view_scale);
 });
 
 function getBytesForActuator(actuators) {
@@ -336,6 +334,7 @@ function handleTouchStart(e) {
     if (is_active) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
+    boundRect = target.getBoundingClientRect(); //This can cause dead spots in there is anything inside the hexagons (ex text) since it changes the target.
     mouseDown = true;
     clearInterval(resendCommand);
     clearTimeout(pendingTimeout);
