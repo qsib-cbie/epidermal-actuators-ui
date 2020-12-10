@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_pause, single_pulse_duration } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_pause, single_pulse_duration,hfPeriod,hfDutyCycle,lfPeriod,lfDutyCycle } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -419,41 +419,39 @@ function handleTouchEnd(e) {
             if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                     console.log('LR');
                     $command = 0x3a;//LR
-                    display_preset("sweep-LR");
+                    display_preset("sweep-LR","hf");
             } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                     console.log('RL');
                     $command = 0x3b;//RL
-                    display_preset("sweep-RL");
+                    display_preset("sweep-RL","hf");
             } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                     console.log('TB');
                     $command = 0x39;//LR
-                    display_preset("sweep-TB");
+                    display_preset("sweep-TB","hf");
             } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                     console.log('BT');
                     $command = 0x38;//RL
-                    display_preset("sweep-BT");
+                    display_preset("sweep-BT","hf");
             } else if (deltaX > 0 && deltaY < 0) {
                     console.log('+45BT');
                     $command = 0x3f;
-                    // $command = 0x3c;//-45bt
-                    display_preset("sweep+45BT");
+                    display_preset("sweep+45BT","hf");
             } else if (deltaX < 0 && deltaY > 0) {
                     console.log('+45TB');
                     $command = 0x3e;//+45tb
-                    // $command = 0x3d;
-                    display_preset("sweep+45TB");
+                    display_preset("sweep+45TB","hf");
             } else if (deltaX < 0 && deltaY < 0) {
                     console.log('-45BT');
                     $command = 0x3c;//-45bt
-                    display_preset("sweep-45BT");
+                    display_preset("sweep-45BT","hf");
             } else if (deltaX > 0 && deltaY > 0) {
                     console.log('-45TB');
                     $command = 0x3d;
-                    display_preset("sweep-45TB");
+                    display_preset("sweep-45TB","hf");
             }
         } else if (presetName == "FlashAll") {
             $command = 0x32;
-            display_preset("flashall");
+            display_preset("flashall","single");
         }
         sendCommandBlocks(); //explosion /implosion 40/41
         $command = temp;
@@ -461,13 +459,21 @@ function handleTouchEnd(e) {
     }
 }
 
-async function display_preset(name) {
+async function display_preset(name,timing) {
+    // await sleep(50);
     for (let item of $preset_display) {
         if (name == item.name) {
             for (let a of item.array) {
                 activeHexagon = a;
-                await sleep($single_pulse_duration);
-                // console.log($single_pulse_duration);
+                if (timing === "single") {
+                    await sleep($single_pulse_duration);
+                    activeHexagon = [];
+                    await sleep($single_pulse_pause);
+                } else if(timing === "hf"){
+                    await sleep($hfPeriod * ($hfDutyCycle/100));
+                    activeHexagon = [];
+                    await sleep($lfPeriod * ($lfDutyCycle/100));
+                }
             }
         }
     }
