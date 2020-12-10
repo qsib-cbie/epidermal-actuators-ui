@@ -358,7 +358,7 @@ function handleTouchStart(e) {
     if(!isPreset && arraySize != "small") {
         findActiveHexagons(e);
         //Interval needs to be based on timing settings so it doesn't overwrite the previous command
-        resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50);
+        resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause);
     }
     }
 }
@@ -382,7 +382,7 @@ function handleTouchMove(e) {
         if (pendingTimeout) { 
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command > 3){hexCache = [];} findActiveHexagons(e);}, 50)}, 50);
+        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause)}, 50);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -410,7 +410,7 @@ function handleTouchEnd(e) {
         hexCache = [];
         clearInterval(resendCommand);
         clearTimeout(pendingTimeout);
-        AllOff();
+        if ($command < 3) AllOff();
     }
 
     if (isPreset) {
