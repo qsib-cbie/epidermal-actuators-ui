@@ -8,12 +8,12 @@ import { onMount } from "svelte";
 export let test_ui = false;
 
 export let activeHexagon = [];
-export let orientation = "horizontal";
+export let orientation = 0;
 export let arraySize = null;
 export let isPreset = false;
 export let presetName = "";
 export let arrayType = "full";
-export let is_active = true;
+export let is_overlay = false;
 
 let Com;
 let pendingTimeout;
@@ -44,6 +44,18 @@ $: {switch(arrayType){
     case "hand":
         hexagonsLayout = hand_hexagons;
         break;
+    case "back":
+        hexagonsLayout = back_hexagons;
+        break;
+    case "thigh":
+        hexagonsLayout = thigh_hexagons;
+        break;
+    case "shoulder":
+        hexagonsLayout = shoulder_hexagons;
+        break;
+    case "chest":
+        hexagonsLayout = chest_hexagons;
+        break;
     case "test":
         hexagonsLayout = testingHexagons;
         break;
@@ -51,8 +63,7 @@ $: {switch(arrayType){
         hexagonsLayout = hexagons;
 }}
 $: view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);
-$: initialRotation = orientation === "horizontal" ? 0 : -90;
-$: setRotationstyle = "rotate("+initialRotation.toString()+"deg)";
+$: setRotationstyle = "rotate("+orientation.toString()+"deg)";
 $: {
     if (arraySize) {
         view_scale = view_scale/arraySize;
@@ -108,76 +119,76 @@ function buildCommandBlocks(active) {
 
 const hexagons = [
   // Row 0
-  { id: 0, dev:0, row: 0, col: 1 },
-  { id: 1, dev:0, row: 0, col: 3 },
+  { id: 0, row: 0, col: 1 },
+  { id: 1, row: 0, col: 3 },
   // filler
-  { id: 2, dev:0, row: 0, col: 7 },
-  { id: 3, dev:0, row: 0, col: 9 },
+  { id: 2, row: 0, col: 7 },
+  { id: 3, row: 0, col: 9 },
 
   // Row 1
-  { id: 4, dev:0, row: 1, col: 0 },
-  { id: 5, dev:0, row: 1, col: 2 },
-  { id: 6, dev:0, row: 1, col: 4 },
-  { id: 7, dev:0, row: 1, col: 6 },
-  { id: 8, dev:0, row: 1, col: 8 },
-  { id: 9, dev:0, row: 1, col: 10 },
+  { id: 4, row: 1, col: 0 },
+  { id: 5, row: 1, col: 2 },
+  { id: 6, row: 1, col: 4 },
+  { id: 7, row: 1, col: 6 },
+  { id: 8, row: 1, col: 8 },
+  { id: 9, row: 1, col: 10 },
 
   // Row 2
-  { id: 10, dev:0, row: 2, col: 1 },
-  { id: 11, dev:0, row: 2, col: 3 },
-  { id: 12, dev:0, row: 2, col: 5 },
-  { id: 13, dev:0, row: 2, col: 7 },
-  { id: 14, dev:0, row: 2, col: 9 },
+  { id: 10, row: 2, col: 1 },
+  { id: 11, row: 2, col: 3 },
+  { id: 12, row: 2, col: 5 },
+  { id: 13, row: 2, col: 7 },
+  { id: 14, row: 2, col: 9 },
 
   // Row 3
-  { id: 15, dev:0, row: 3, col: 0 },
-  { id: 16, dev:0, row: 3, col: 2 },
-  { id: 17, dev:0, row: 3, col: 4 },
-  { id: 18, dev:0, row: 3, col: 6 },
-  { id: 19, dev:0, row: 3, col: 8 },
-  { id: 20, dev:0, row: 3, col: 10 },
+  { id: 15, row: 3, col: 0 },
+  { id: 16, row: 3, col: 2 },
+  { id: 17, row: 3, col: 4 },
+  { id: 18, row: 3, col: 6 },
+  { id: 19, row: 3, col: 8 },
+  { id: 20, row: 3, col: 10 },
 
   // Row 4
-  { id: 21, dev:0, row: 4, col: 1 },
-  { id: 22, dev:0, row: 4, col: 3 },
-  { id: 23, dev:0, row: 4, col: 5 },
-  { id: 24, dev:0, row: 4, col: 7 },
-  { id: 25, dev:0, row: 4, col: 9 },
+  { id: 21, row: 4, col: 1 },
+  { id: 22, row: 4, col: 3 },
+  { id: 23, row: 4, col: 5 },
+  { id: 24, row: 4, col: 7 },
+  { id: 25, row: 4, col: 9 },
 
   // Row 5
-  { id: 26, dev:0, row: 5, col: 0 },
-  { id: 27, dev:0, row: 5, col: 2 },
-  { id: 28, dev:0, row: 5, col: 4 },
-  { id: 29, dev:0, row: 5, col: 6 },
-  { id: 30, dev:0, row: 5, col: 8 },
-  { id: 31, dev:0, row: 5, col: 10 },
+  { id: 26, row: 5, col: 0 },
+  { id: 27, row: 5, col: 2 },
+  { id: 28, row: 5, col: 4 },
+  { id: 29, row: 5, col: 6 },
+  { id: 30, row: 5, col: 8 },
+  { id: 31, row: 5, col: 10 },
 
   // Row 6
-  { id: 32, dev:0, row: 6, col: 1 },
-  { id: 33, dev:0, row: 6, col: 3 },
+  { id: 32, row: 6, col: 1 },
+  { id: 33, row: 6, col: 3 },
   // filler
-  { id: 34, dev:0, row: 6, col: 7 },
-  { id: 35, dev:0, row: 6, col: 9 },
+  { id: 34, row: 6, col: 7 },
+  { id: 35, row: 6, col: 9 },
 ];
 
 const testingHexagons = [
-    {id: 0, dev:0, row: 0, col: 1},
-    {id: 1, dev:0, row: 0, col: 3},
-    {id: 4, dev:0, row: 1, col: 0},    
-    {id: 5, dev:0, row: 1, col: 2},
-    {id: 6, dev:0, row: 1, col: 4},
-    {id: 10, dev:0, row: 2, col: 1},
-    {id: 11, dev:0, row: 2, col: 3},
+    {id: 0, row: 0, col: 1},
+    {id: 1, row: 0, col: 3},
+    {id: 4, row: 1, col: 0},    
+    {id: 5, row: 1, col: 2},
+    {id: 6, row: 1, col: 4},
+    {id: 10, row: 2, col: 1},
+    {id: 11, row: 2, col: 3},
 ];
 
 const stichableHexagons = [
-    {id: 0, dev:0, row: 0, col: 1},
-    {id: 1, dev:0, row: 0, col: 3},
-    {id: 2, dev:0, row: 1, col: 0},    
-    {id: 3, dev:0, row: 1, col: 2},
-    {id: 4, dev:0, row: 1, col: 4},
-    {id: 5, dev:0, row: 2, col: 1},
-    {id: 6, dev:0, row: 2, col: 3},
+    {id: 0, row: 0, col: 1},
+    {id: 1, row: 0, col: 3},
+    {id: 2, row: 1, col: 0},    
+    {id: 3, row: 1, col: 2},
+    {id: 4, row: 1, col: 4},
+    {id: 5, row: 2, col: 1},
+    {id: 6, row: 2, col: 3},
 ];
 
 const thermalHexagons = [
@@ -203,30 +214,517 @@ const thermalHexagons = [
 ];
 
 const hand_hexagons = [
-  { id: 0, dev:0, row:0, col:5},
-  { id: 1, dev:0, row:0, col:7},
-  { id: 2, dev:0, row:1, col:4},
-  { id: 3, dev:0, row:1, col:6},
-  { id: 4, dev:0, row:1, col:8},
-  { id: 5, dev:0, row:2, col:5},
-  { id: 6, dev:0, row:2, col:7},
+  { id: 0, row:0, col:4},
+  { id: 1, row:0, col:2},
+  { id: 2, row:1, col:3},
+  { id: 3, row:1, col:5},
+  { id: 4, row:1, col:1},
+  { id: 5, row:2, col:2},
+  { id: 6, row:2, col:4},
 
-  { id: 0, dev:1, row:2, col:1},
-  { id: 1, dev:1, row:2, col:3},
-  { id: 2, dev:1, row:3, col:0},
-  { id: 3, dev:1, row:3, col:2},
-  { id: 4, dev:1, row:3, col:4},
-  { id: 5, dev:1, row:4, col:1},
-  { id: 6, dev:1, row:4, col:3},
+  { id: 7, row:3, col:3},
+  { id: 8, row:3, col:1},
+  { id: 9, row:4, col:2},
+  { id: 10, row:4, col:4},
+  { id: 11, row:4, col:0},
+  { id: 12, row:5, col:1},
+  { id: 13, row:5, col:3},
 
-  { id: 0, dev:2, row:3, col:6},
-  { id: 1, dev:2, row:3, col:8},
-  { id: 2, dev:2, row:4, col:5},
-  { id: 3, dev:2, row:4, col:7},
-  { id: 4, dev:2, row:4, col:9},
-  { id: 5, dev:2, row:5, col:6},
-  { id: 6, dev:2, row:5, col:8},
+  { id: 14, row:2, col:8},
+  { id: 15, row:2, col:6},
+  { id: 16, row:3, col:7},
+  { id: 17, row:3, col:9},
+  { id: 18, row:3, col:5},
+  { id: 19, row:4, col:6},
+  { id: 20, row:4, col:8},
+];
 
+const back_hexagons = [
+  { id: 0, row:0, col:23},
+  { id: 1, row:0, col:21},
+  { id: 2, row:1, col:22},
+  { id: 3, row:1, col:24},
+  { id: 4, row:1, col:20},
+  { id: 5, row:2, col:21},
+  { id: 6, row:2, col:23},
+
+  { id: 7, row:1, col:18},
+  { id: 8, row:1, col:16},
+  { id: 9, row:2, col:17},
+  { id: 10, row:2, col:19},
+  { id: 11, row:2, col:15},
+  { id: 12, row:3, col:16},
+  { id: 13, row:3, col:18},
+
+  { id: 14, row:3, col:22},
+  { id: 15, row:3, col:20},
+  { id: 16, row:4, col:21},
+  { id: 17, row:4, col:23},
+  { id: 18, row:4, col:19},
+  { id: 19, row:5, col:20},
+  { id: 20, row:5, col:22},
+
+  { id: 21, row:2, col:13},
+  { id: 22, row:2, col:11},
+  { id: 23, row:3, col:12},
+  { id: 24, row:3, col:14},
+  { id: 25, row:3, col:10},
+  { id: 26, row:4, col:11},
+  { id: 27, row:4, col:13},
+
+  { id: 28, row:4, col:17},
+  { id: 29, row:4, col:15},
+  { id: 30, row:5, col:16},
+  { id: 31, row:5, col:18},
+  { id: 32, row:5, col:14},
+  { id: 33, row:6, col:15},
+  { id: 34, row:6, col:17},
+
+  { id: 35, row:6, col:21},
+  { id: 36, row:6, col:19},
+  { id: 37, row:7, col:20},
+  { id: 38, row:7, col:22},
+  { id: 39, row:7, col:18},
+  { id: 40, row:8, col:19},
+  { id: 41, row:8, col:21},
+
+  { id: 42, row:5, col:26},
+  { id: 43, row:5, col:24},
+  { id: 44, row:6, col:25},
+  { id: 45, row:6, col:27},
+  { id: 46, row:6, col:23},
+  { id: 47, row:7, col:24},
+  { id: 48, row:7, col:26},
+
+  { id: 49, row:3, col:8},
+  { id: 50, row:3, col:6},
+  { id: 51, row:4, col:7},
+  { id: 52, row:4, col:9},
+  { id: 53, row:4, col:5},
+  { id: 54, row:5, col:6},
+  { id: 55, row:5, col:8},
+
+  { id: 56, row:5, col:12},
+  { id: 57, row:5, col:10},
+  { id: 58, row:6, col:11},
+  { id: 59, row:6, col:13},
+  { id: 60, row:6, col:9},
+  { id: 61, row:7, col:12},
+  { id: 62, row:7, col:10},
+
+  { id: 63, row:7, col:16},
+  { id: 64, row:7, col:14},
+  { id: 65, row:8, col:15},
+  { id: 66, row:8, col:17},
+  { id: 67, row:8, col:13},
+  { id: 68, row:9, col:14},
+  { id: 69, row:9, col:16},
+
+  { id: 70, row:9, col:20},
+  { id: 71, row:9, col:18},
+  { id: 72, row:10, col:19},
+  { id: 73, row:10, col:21},
+  { id: 74, row:10, col:17},
+  { id: 75, row:11, col:18},
+  { id: 76, row:11, col:20},
+
+  { id: 77, row:8, col:25},
+  { id: 78, row:8, col:23},
+  { id: 79, row:9, col:24},
+  { id: 80, row:9, col:26},
+  { id: 81, row:9, col:22},
+  { id: 82, row:10, col:23},
+  { id: 83, row:10, col:25},
+
+  { id: 84, row:4, col:3},
+  { id: 85, row:4, col:1},
+  { id: 86, row:5, col:2},
+  { id: 87, row:5, col:4},
+  { id: 88, row:5, col:0},
+  { id: 89, row:6, col:1},
+  { id: 90, row:6, col:3},
+
+  { id: 91, row:6, col:7},
+  { id: 92, row:6, col:5},
+  { id: 93, row:7, col:6},
+  { id: 94, row:7, col:8},
+  { id: 95, row:7, col:4},
+  { id: 96, row:8, col:5},
+  { id: 97, row:8, col:7},
+
+  { id: 98, row:8, col:11},
+  { id: 99, row:8, col:9},
+  { id: 100, row:9, col:10},
+  { id: 101, row:9, col:12},
+  { id: 102, row:9, col:8},
+  { id: 103, row:10, col:9},
+  { id: 104, row:10, col:11},
+
+  { id: 105, row:10, col:15},
+  { id: 106, row:10, col:13},
+  { id: 107, row:11, col:14},
+  { id: 108, row:11, col:16},
+  { id: 109, row:11, col:12},
+  { id: 110, row:12, col:13},
+  { id: 111, row:12, col:15},
+
+  { id: 112, row:9, col:6},
+  { id: 113, row:9, col:4},
+  { id: 114, row:10, col:5},
+  { id: 115, row:10, col:7},
+  { id: 116, row:10, col:3},
+  { id: 117, row:11, col:4},
+  { id: 118, row:11, col:6},
+
+  { id: 119, row:11, col:10},
+  { id: 120, row:11, col:8},
+  { id: 121, row:12, col:9},
+  { id: 122, row:12, col:11},
+  { id: 123, row:12, col:7},
+  { id: 124, row:13, col:8},
+  { id: 125, row:13, col:10},
+];
+
+const thigh_hexagons = [
+    { id: 0, row:0, col:10},
+    { id: 1, row:0, col:8},
+    { id: 2, row:1, col:9},
+    { id: 3, row:1, col:11},
+    { id: 4, row:1, col:7},
+    { id: 5, row:2, col:8},
+    { id: 6, row:2, col:10},
+
+    { id: 7, row:1, col:5},
+    { id: 8, row:1, col:3},
+    { id: 9, row:2, col:4},
+    { id: 10, row:2, col:6},
+    { id: 11, row:2, col:2},
+    { id: 12, row:3, col:3},
+    { id: 13, row:3, col:5},
+
+    { id: 14, row:3, col:9},
+    { id: 15, row:3, col:7},
+    { id: 16, row:4, col:8},
+    { id: 17, row:4, col:10},
+    { id: 18, row:4, col:6},
+    { id: 19, row:5, col:7},
+    { id: 20, row:5, col:9},
+
+    { id: 21, row:4, col:4},
+    { id: 22, row:4, col:2},
+    { id: 23, row:5, col:3},
+    { id: 24, row:5, col:5},
+    { id: 25, row:5, col:1},
+    { id: 26, row:6, col:2},
+    { id: 27, row:6, col:4},
+
+    { id: 28, row:6, col:8},
+    { id: 29, row:6, col:6},
+    { id: 30, row:7, col:7},
+    { id: 31, row:7, col:9},
+    { id: 32, row:7, col:5},
+    { id: 33, row:8, col:6},
+    { id: 34, row:8, col:8},
+
+    { id: 35, row:7, col:3},
+    { id: 36, row:7, col:1},
+    { id: 37, row:8, col:2},
+    { id: 38, row:8, col:4},
+    { id: 39, row:8, col:0},
+    { id: 40, row:9, col:1},
+    { id: 41, row:9, col:3},
+
+    { id: 42, row:9, col:7},
+    { id: 43, row:9, col:5},
+    { id: 44, row:10, col:6},
+    { id: 45, row:10, col:8},
+    { id: 46, row:10, col:4},
+    { id: 47, row:11, col:5},
+    { id: 48, row:11, col:7},
+];
+
+const shoulder_hexagons = [
+  { id: 0, row:0, col:20},
+  { id: 1, row:0, col:18},
+  { id: 2, row:1, col:19},
+  { id: 3, row:1, col:21},
+  { id: 4, row:1, col:17},
+  { id: 5, row:2, col:18},
+  { id: 6, row:2, col:20},
+
+  { id: 7, row:1, col:15},
+  { id: 8, row:1, col:13},
+  { id: 9, row:2, col:14},
+  { id: 10, row:2, col:16},
+  { id: 11, row:2, col:12},
+  { id: 12, row:3, col:13},
+  { id: 13, row:3, col:15},
+
+  { id: 14, row:3, col:19},
+  { id: 15, row:3, col:17},
+  { id: 16, row:4, col:18},
+  { id: 17, row:4, col:20},
+  { id: 18, row:4, col:16},
+  { id: 19, row:5, col:17},
+  { id: 20, row:5, col:19},
+
+  { id: 21, row:2, col:24},
+  { id: 22, row:2, col:22},
+  { id: 23, row:3, col:23},
+  { id: 24, row:3, col:25},
+  { id: 25, row:3, col:21},
+  { id: 26, row:4, col:22},
+  { id: 27, row:4, col:24},
+
+  { id: 28, row:4, col:14},
+  { id: 29, row:4, col:12},
+  { id: 30, row:5, col:13},
+  { id: 31, row:5, col:15},
+  { id: 32, row:5, col:11},
+  { id: 33, row:6, col:12},
+  { id: 34, row:6, col:14},
+
+  { id: 35, row:6, col:18},
+  { id: 36, row:6, col:16},
+  { id: 37, row:7, col:17},
+  { id: 38, row:7, col:19},
+  { id: 39, row:7, col:15},
+  { id: 40, row:8, col:16},
+  { id: 41, row:8, col:18},
+
+  { id: 42, row:5, col:23},
+  { id: 43, row:5, col:21},
+  { id: 44, row:6, col:22},
+  { id: 45, row:6, col:24},
+  { id: 46, row:6, col:20},
+  { id: 47, row:7, col:21},
+  { id: 48, row:7, col:23},
+
+  { id: 49, row:5, col:9},
+  { id: 50, row:5, col:7},
+  { id: 51, row:6, col:8},
+  { id: 52, row:6, col:10},
+  { id: 53, row:6, col:6},
+  { id: 54, row:7, col:7},
+  { id: 55, row:7, col:9},
+
+  { id: 56, row:7, col:13},
+  { id: 57, row:7, col:11},
+  { id: 58, row:8, col:12},
+  { id: 59, row:8, col:14},
+  { id: 60, row:8, col:10},
+  { id: 61, row:9, col:11},
+  { id: 62, row:9, col:13},
+
+  { id: 63, row:6, col:4},
+  { id: 64, row:6, col:2},
+  { id: 65, row:7, col:3},
+  { id: 66, row:7, col:5},
+  { id: 67, row:7, col:1},
+  { id: 68, row:8, col:2},
+  { id: 69, row:8, col:4},
+
+  { id: 70, row:8, col:8},
+  { id: 71, row:8, col:6},
+  { id: 72, row:9, col:7},
+  { id: 73, row:9, col:9},
+  { id: 74, row:9, col:5},
+  { id: 75, row:10, col:6},
+  { id: 76, row:10, col:8},
+
+  { id: 77, row:10, col:12},
+  { id: 78, row:10, col:10},
+  { id: 79, row:11, col:11},
+  { id: 80, row:11, col:13},
+  { id: 81, row:11, col:9},
+  { id: 82, row:12, col:10},
+  { id: 83, row:12, col:12},
+
+  { id: 84, row:9, col:3},
+  { id: 85, row:9, col:1},
+  { id: 86, row:10, col:2},
+  { id: 87, row:10, col:4},
+  { id: 88, row:10, col:0},
+  { id: 89, row:11, col:1},
+  { id: 90, row:11, col:3},
+
+  { id: 91, row:11, col:7},
+  { id: 92, row:11, col:5},
+  { id: 93, row:12, col:6},
+  { id: 94, row:12, col:8},
+  { id: 95, row:12, col:4},
+  { id: 96, row:13, col:5},
+  { id: 97, row:13, col:7},
+];
+
+const chest_hexagons = [
+    { id: 0, row:0, col:16},
+    { id: 1, row:0, col:14},
+    { id: 2, row:1, col:15},
+    { id: 3, row:1, col:17},
+    { id: 4, row:1, col:13},
+    { id: 5, row:2, col:14},
+    { id: 6, row:2, col:16},
+
+    { id: 7, row:1, col:11},
+    { id: 8, row:1, col:9},
+    { id: 9, row:2, col:10},
+    { id: 10, row:2, col:12},
+    { id: 11, row:2, col:8},
+    { id: 12, row:3, col:9},
+    { id: 13, row:3, col:11},
+
+    { id: 14, row:3, col:15},
+    { id: 15, row:3, col:13},
+    { id: 16, row:4, col:14},
+    { id: 17, row:4, col:16},
+    { id: 18, row:4, col:12},
+    { id: 19, row:5, col:13},
+    { id: 20, row:5, col:15},
+
+    { id: 21, row:2, col:20},
+    { id: 22, row:2, col:18},
+    { id: 23, row:3, col:19},
+    { id: 24, row:3, col:21},
+    { id: 25, row:3, col:17},
+    { id: 26, row:4, col:18},
+    { id: 27, row:4, col:20},
+
+    { id: 28, row:4, col:10},
+    { id: 29, row:4, col:8},
+    { id: 30, row:5, col:9},
+    { id: 31, row:5, col:11},
+    { id: 32, row:5, col:7},
+    { id: 33, row:6, col:8},
+    { id: 34, row:6, col:10},
+
+    { id: 35, row:6, col:14},
+    { id: 36, row:6, col:12},
+    { id: 37, row:7, col:13},
+    { id: 38, row:7, col:15},
+    { id: 39, row:7, col:11},
+    { id: 40, row:8, col:12},
+    { id: 41, row:8, col:14},
+
+    { id: 42, row:5, col:19},
+    { id: 43, row:5, col:17},
+    { id: 44, row:6, col:18},
+    { id: 45, row:6, col:20},
+    { id: 46, row:6, col:16},
+    { id: 47, row:7, col:17},
+    { id: 48, row:7, col:19},
+
+    { id: 49, row:7, col:9},
+    { id: 50, row:7, col:7},
+    { id: 51, row:8, col:8},
+    { id: 52, row:8, col:10},
+    { id: 53, row:8, col:6},
+    { id: 54, row:9, col:7},
+    { id: 55, row:9, col:9},
+
+    { id: 56, row:9, col:13},
+    { id: 57, row:9, col:11},
+    { id: 58, row:10, col:12},
+    { id: 59, row:10, col:14},
+    { id: 60, row:10, col:10},
+    { id: 61, row:11, col:11},
+    { id: 62, row:11, col:13},
+
+    { id: 63, row:8, col:18},
+    { id: 64, row:8, col:16},
+    { id: 65, row:9, col:17},
+    { id: 66, row:9, col:19},
+    { id: 67, row:9, col:15},
+    { id: 68, row:10, col:16},
+    { id: 69, row:10, col:18},
+
+    { id: 70, row:7, col:23},
+    { id: 71, row:7, col:21},
+    { id: 72, row:8, col:22},
+    { id: 73, row:8, col:24},
+    { id: 74, row:8, col:20},
+    { id: 75, row:9, col:21},
+    { id: 76, row:9, col:23},
+
+    { id: 77, row:8, col:4},
+    { id: 78, row:8, col:2},
+    { id: 79, row:9, col:3},
+    { id: 80, row:9, col:5},
+    { id: 81, row:9, col:1},
+    { id: 82, row:10, col:2},
+    { id: 83, row:10, col:4},
+
+    { id: 84, row:10, col:8},
+    { id: 85, row:10, col:6},
+    { id: 86, row:11, col:7},
+    { id: 87, row:11, col:9},
+    { id: 88, row:11, col:5},
+    { id: 89, row:12, col:6},
+    { id: 90, row:12, col:8},
+
+    { id: 91, row:12, col:12},
+    { id: 92, row:12, col:10},
+    { id: 93, row:13, col:11},
+    { id: 94, row:13, col:13},
+    { id: 95, row:13, col:9},
+    { id: 96, row:14, col:10},
+    { id: 97, row:14, col:12},
+
+    { id: 98, row:11, col:17},
+    { id: 99, row:11, col:15},
+    { id: 100, row:12, col:16},
+    { id: 101, row:12, col:18},
+    { id: 102, row:12, col:14},
+    { id: 103, row:13, col:15},
+    { id: 104, row:13, col:17},
+
+    { id: 105, row:10, col:22},
+    { id: 106, row:10, col:20},
+    { id: 107, row:11, col:21},
+    { id: 108, row:11, col:23},
+    { id: 109, row:11, col:19},
+    { id: 110, row:12, col:20},
+    { id: 111, row:12, col:22},
+
+    { id: 112, row:9, col:27},
+    { id: 113, row:9, col:25},
+    { id: 114, row:10, col:26},
+    { id: 115, row:10, col:28},
+    { id: 116, row:10, col:24},
+    { id: 117, row:11, col:25},
+    { id: 118, row:11, col:27},
+
+    { id: 119, row:11, col:3},
+    { id: 120, row:11, col:1},
+    { id: 121, row:12, col:2},
+    { id: 122, row:12, col:4},
+    { id: 123, row:12, col:0},
+    { id: 124, row:13, col:1},
+    { id: 125, row:13, col:3},
+
+    { id: 126, row:13, col:7},
+    { id: 127, row:13, col:5},
+    { id: 128, row:14, col:6},
+    { id: 129, row:14, col:8},
+    { id: 130, row:14, col:4},
+    { id: 131, row:15, col:5},
+    { id: 132, row:15, col:7},
+
+    { id: 133, row:13, col:21},
+    { id: 134, row:13, col:19},
+    { id: 135, row:14, col:20},
+    { id: 136, row:14, col:22},
+    { id: 137, row:14, col:18},
+    { id: 138, row:15, col:19},
+    { id: 139, row:15, col:21},
+
+    { id: 140, row:12, col:26},
+    { id: 141, row:12, col:24},
+    { id: 142, row:13, col:25},
+    { id: 143, row:13, col:27},
+    { id: 144, row:13, col:23},
+    { id: 145, row:14, col:24},
+    { id: 146, row:14, col:26},
 ];
 $: hexagonSideLength = 65*view_scale;
 const globalPadding = 10;
@@ -237,10 +735,10 @@ $: width = Math.sqrt(3) * hexagonSideLength;
 $: height = 2 * hexagonSideLength;
 
 // Compute the pixel location for each hexagon
-$: hexagonsWithoutPixels = hexagonsLayout.map(({id, dev, row, col}) => {
+$: hexagonsWithoutPixels = hexagonsLayout.map(({id, row, col}) => {
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    return {id, dev, row, col, x, y}
+    return {id, row, col, x, y}
 });
 
 $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
@@ -250,7 +748,7 @@ $: viewBox = hexagonsWithoutPixels.reduce((previousValue, currentValue) => {
     };
 });
 
-$: drawableHexagons = hexagonsLayout.map(({id, dev, row, col}) => {
+$: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     const sqrt3 = Math.sqrt(3);
     const a = hexagonSideLength / 2;
     const height = (4 * a);
@@ -265,9 +763,9 @@ $: drawableHexagons = hexagonsLayout.map(({id, dev, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = (activeHexagon.includes(id) && dev == $activeDevice ) ? "mediumseagreen" : "black";
+    const color = (activeHexagon.includes(id) ? "mediumseagreen" : "black");
 
-    return {id, dev, x, y, width, height, points: points.join(' '), color};
+    return {id, x, y, width, height, points: points.join(' '), color};
 });
 
 export function sendCommandBlocks() {
@@ -309,7 +807,6 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
-                $activeDevice = drawableHexagons[i].dev;
                 buildCommandBlocks(activeHexagon);
             }
         }
@@ -331,7 +828,7 @@ export async function AllOff() {
 }
 
 function handleTouchStart(e) { 
-    if (is_active) {
+    if (!is_overlay) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     boundRect = target.getBoundingClientRect(); //This can cause dead spots in there is anything inside the hexagons (ex text) since it changes the target.
@@ -364,7 +861,7 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
-    if (is_active) {
+    if (!is_overlay) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     if(!mouseDown) {
@@ -395,7 +892,7 @@ function handleTouchMove(e) {
 }
 
 function handleTouchEnd(e) {
-    if (is_active) {
+    if (!is_overlay) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
     if ($command > 3 ) hexCache = [];
@@ -531,7 +1028,7 @@ const sleep = (milliseconds) => {
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        <!-- {#if arraySize == "normal"}
+                        <!-- {#if (!arraySize || arraysize <= 1)}
                             <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
                         {/if} -->
                     </g>

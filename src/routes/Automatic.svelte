@@ -4,9 +4,7 @@ import Hexagons from '../Utils/Hexagons.svelte';
 import Status from '../Utils/Status.svelte';
 import { onMount } from 'svelte';
 
-let winSize = window.innerHeight/window.innerWidth;
 let hexActive;
-let hexType;
 let is_active = 0;
 let presetName;
 let usePreset = false;
@@ -19,12 +17,12 @@ let shoulder_img = "images/shoulder.png";
 let thigh_img = "images/thigh.png";
 let upper_arm_img = "images/upper_arm.png";
 
-let location_options = [{id: 0, hexType:"", size: .6, top: 70, left: 50, style: "background-image:url("+back_img+"); background-position: 50% 80%;"},
-                        {id: 1, hexType:"", size: null, top: 40, left: 60, style: "background-image:url("+upper_arm_img+");"},
-                        {id: 2, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+chest_img+");"},
-                        {id: 3, hexType:"", size: null, top: 30, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%;"},
-                        {id: 4, hexType:"hand", size: null, top: 30, left: 50, style: "background-image:url("+hand_img+"); background-position: 50% 30%;"},
-                        {id: 5, hexType:"", size: null, top: 50, left: 50, style: "background-image:url("+shoulder_img+");"},];
+let location_options = [{id: 0, hexType:"back", rotation: 20, size: null, top: 65, left: 50, style: "background-image:url("+back_img+"); background-position: 50% 80%;"},
+                        {id: 1, hexType:"", rotation: 0, size: null, top: 40, left: 60, style: "background-image:url("+upper_arm_img+");"},
+                        {id: 2, hexType:"chest", rotation: 180, size: null, top: 50, left: 50, style: "background-image:url("+chest_img+");"},
+                        {id: 3, hexType:"thigh", rotation: 0, size: null, top: 30, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%;"},
+                        {id: 4, hexType:"hand", rotation: 30, size: null, top: 30, left: 50, style: "background-image:url("+hand_img+"); background-position: 50% 30%;"},
+                        {id: 5, hexType:"shoulder", rotation: 30, size: null, top: 50, left: 50, style: "background-image:url("+shoulder_img+");"},];
                         
                                                 
 $: main_obj = location_options[0];
@@ -43,7 +41,6 @@ function handleClickOption(obj) {
     }
     main_obj = obj;
     is_active = obj.id;
-    hexType = obj.hexType;
 }
 
 function setPreset(name) {
@@ -72,16 +69,15 @@ onMount(() => {
     lastPreset.style = "border: .2em solid blue;";
 });
 </script>
-<Status/>
 <div style="text-align:center; height:100%;">
     <div class="scroll-box">
         {#each location_options as option}
             <button id={option.id} class="op-button" style={option.style+"position: relative; height: "+100/(location_options.length)+"%;"} on:click={() => handleClickOption(option)}>
             <div style={"position: absolute; top: "+option.top+"%; left: "+option.left+"%;transform:translate(-50%,-50%);"}>
                     {#if (is_active == option.id)}
-                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} arraySize=10 is_active=false;/>
+                        <Hexagons bind:activeHexagon={hexActive} arrayType={option.hexType} orientation={option.rotation} arraySize={10} is_overlay={true};/>
                     {:else}
-                        <Hexagons arrayType={option.hexType} arraySize=10 is_active=false;/>
+                        <Hexagons arrayType={option.hexType} orientation={option.rotation} arraySize={10} is_overlay={true}/>
                     {/if}
                 </div>
             </button>
@@ -91,7 +87,7 @@ onMount(() => {
     <div class="virtual-touch" >
         <div class="op-button" style={"position: relative;"+main_obj.style+"background-size: 200% 200%;"}>
             <div style={"position: absolute; top: "+main_obj.top+"%; left: "+main_obj.left+"%; transform:translate(-50%,-50%);"}>
-                <Hexagons bind:activeHexagon={hexActive} bind:arrayType={hexType} arraySize={main_obj.size} presetName={presetName} isPreset={usePreset}/>
+                <Hexagons bind:activeHexagon={hexActive} arrayType={main_obj.hexType} orientation={main_obj.rotation} arraySize={main_obj.size} presetName={presetName} isPreset={usePreset}/>
             </div>
         </div>
     </div>
@@ -106,7 +102,7 @@ onMount(() => {
         {/each}
     </div>
 </div>
-
+<Status/>
 <style>
     .scroll-box{
         width: 10%;
@@ -138,7 +134,7 @@ onMount(() => {
     .virtual-touch{
         
         width: 75%;
-        height: 90%;
+        height: 100%;
 
         display: inline-block;
         vertical-align: top;
