@@ -67,10 +67,12 @@ $: setRotationstyle = "rotate("+orientation.toString()+"deg)";
 $: {
     if (arraySize) {
         view_scale = view_scale/arraySize;
-        if (view_scale > .3) {
-            strokeWidth = "5px";
+        if (view_scale > .3 & view_scale < .5) {
+            strokeWidth = "2px";
+        } else if (view_scale > .5) {
+            strokeWidth = "4px";
         } else {
-            strokeWidth = "1px"
+            strokeWidth = "1px";
         }
     }else {
         view_scale = ((winWidth/initialWidth)*(winHeight/initialHeight))-(initialHeight/initialWidth);

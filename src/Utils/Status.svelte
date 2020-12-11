@@ -6,25 +6,20 @@ import {is_success, is_connected} from "../../stores/stores.js"
     <div class="status">
         <h2>Status:  
             {#if $is_connected}
-                <img class="status" id="green_power_icon" src="images/power_green.png" alt="Green Power Icon"/> 
+                <img id="green_power_icon" src="images/power_green.png" alt="Green Power Icon"/> 
             {:else}
-                <img class="status" id="red_power_icon" src="images/power_red.png" alt="Red Power Icon"/> 
+                <img id="red_power_icon" src="images/power_red.png" alt="Red Power Icon"/> 
             {/if}
             {#if $is_success}
-                <img class="status" id="green_signal_icon" src="images/signal_green.png" alt="Green Signal Icon"/> 
+                <img  id="green_signal_icon" src="images/signal_green.png" alt="Green Signal Icon"/> 
             {:else}
-                <img class="status" id="red_signal_icon" src="images/signal_red.png" alt="Red Signal Icon"/> 
+                <img id="red_signal_icon" src="images/signal_red.png" alt="Red Signal Icon"/> 
             {/if}
         </h2>
     </div>
 </div>
 <style>
     .status{
-        width: auto;
+        width: 9.5em;
     }
-    img.status{
-        height: auto;
-		width: 7%;
-    }
-
 </style>
