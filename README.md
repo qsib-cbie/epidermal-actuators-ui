@@ -10,7 +10,7 @@ This user interface is designed to be used to control the haptic epidermal actua
 
 
 ## Get started
-Visit the live deployment of the UI [here](epidermal-actuators.surge.sh).
+Visit the live deployment of the UI [here](http://epidermal-actuators.surge.sh/).
 
 Or to build locally...
 
