@@ -1,6 +1,6 @@
 <script>
 import { Router, Link, Route } from "svelte-routing";
-import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, block0_31, cmd_op, is_success, is_connected,single_pulse_duration,single_pulse_pause,lfDutyCycle,lfPeriod,hfDutyCycle,hfPeriod} from "../../stores/stores";
+import { lf_block, hf_block, single_pulse_block, message, devices, activeDevice, command, cmd_op, is_success, is_connected, single_pulse_duration, single_pulse_pause, lfDutyCycle, lfPeriod, hfDutyCycle, hfPeriod, hostname, port, route, endpoint} from "../../stores/stores";
 import Communication from "../Utils/Communication.svelte";
 import Devices from "../Utils/Devices.svelte";
 import Hexagons from "../Utils/Hexagons.svelte";
@@ -10,18 +10,13 @@ import { onMount } from "svelte";
 // MARK: Message
 let Com;
 let Hex;
-let endpoint;
 let nopRoute = '';
 let success = '{ "Success": { } }';
 let configContent;
 
 // MARK: Server Configuration
-let hostname;
-$: port = "8088";
-$: route = "api_index";
-
 $: connectionAttempt = (async () => {
-    return await Com.hitEndpoint(endpoint, nopRoute, success);
+    return await Com.hitEndpoint($endpoint, nopRoute, success);
 })().then(() => {
     $message = "Connection Established";
     $is_connected = true;
@@ -57,7 +52,7 @@ function handleRfField(Com) {
     console.log(fieldState);
     console.log(field_power_command);
     (async () => {
-        return await Com.hitEndpoint(endpoint, nopRoute, field_power_command);
+        return await Com.hitEndpoint($endpoint, nopRoute, field_power_command);
     })().then(result => {
         $message = "Field is "+stateString;
     }).catch(error => {
@@ -69,14 +64,14 @@ function handleClickRfPower() {
     configureAttempt = (async () => {
         configuring = true;
         antennaButtonMessage = "Configuring ...";
-        return await Com.hitEndpoint(endpoint, nopRoute, rf_command);
+        return await Com.hitEndpoint($endpoint, nopRoute, rf_command);
     })().then(result => {
         configuring = false;
         activeRfPower = rfPower;
         antennaButtonMessage = "Configure";
         (async () => {
             $message = "Restarting System ...";
-            return await Com.hitEndpoint(endpoint, nopRoute, reset_command);
+            return await Com.hitEndpoint($endpoint, nopRoute, reset_command);
         })().then(result => {
             $message = "System Reset Complete"
             $is_success = true;
@@ -125,16 +120,6 @@ $: $hf_block = [(hfOn & 0x00000ff0) >> 4, (hfOn & 0x0000000f) << 4 | ($hfPeriod 
 $: lfOn = $lfPeriod * ($lfDutyCycle/100);
 $: $lf_block = [(lfOn & 0x00000ff0) >> 4, (lfOn & 0x0000000f) << 4 | ($lfPeriod & 0x00000f00)>>8, $lfPeriod & 0x000000ff];
 
-// function setTimingBlock(config) {
-//     if (config == "infer") {
-//         hfPeriod = 5;      
-//         lfPeriod = 0xffff;
-//         lfDutyCycle = 100;
-//     } else if (config == "hideLF"){
-//         lfPeriod = 0xffff;
-//         lfDutyCycle = 100;           
-//     }
-// }
 onMount(() => {
     configContent.style.display = "block";
 });
@@ -155,16 +140,16 @@ function handleSetTiming(Hex) {
 </script>
 
 <main>
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success bind:hostname bind:port bind:route/>
+<Communication bind:this={Com} bind:nopRoute bind:success/>
 <Status/>
 <Router>
     <div class='content-wrapper'>
         <div class='col-25'>
             <button class="collapsible" on:click={handleCollapse}><h2><img id="serve_icon" src="images/server_icon.png" alt="Server Icon"/>  Server Configuration</h2></button>
             <div class="content" bind:this={configContent}>
-            <label for="hostname"> Hostname </label> <input bind:value={hostname} />
-            <label for="port"> Port </label> <input bind:value={port} />
-            <label for="route"> Route </label> <input bind:value={route} />
+            <label for="hostname"> Hostname </label> <input bind:value={$hostname} />
+            <label for="port"> Port </label> <input bind:value={$port} />
+            <label for="route"> Route </label> <input bind:value={$route} />
 
             {#await connectionAttempt }
                 <p>attempting connection ...</p>

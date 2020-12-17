@@ -1,5 +1,5 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, activeDevice, single_pulse_pause, single_pulse_duration,hfPeriod,hfDutyCycle,lfPeriod,lfDutyCycle } from "../../stores/stores.js";
+import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, single_pulse_pause, single_pulse_duration, hfPeriod, hfDutyCycle, lfPeriod, lfDutyCycle, endpoint } from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -20,7 +20,6 @@ let pendingTimeout;
 let resendCommand;
 let isTouch = false;
 let boundRect;
-let endpoint;
 let nopRoute;
 let success;
 let hexCache = [];
@@ -772,7 +771,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
 
 export function sendCommandBlocks() {
     (async () => {
-        return await Com.hitEndpoint(endpoint, nopRoute, $act_command);
+        return await Com.hitEndpoint($endpoint, nopRoute, $act_command);
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
             $message = result['Failure']['message']; 
@@ -985,7 +984,7 @@ const sleep = (milliseconds) => {
 
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
+<Communication bind:this={Com} bind:nopRoute bind:success/>
 
     <!-- {#if arraySize == "normal"}
         <div class="col-5">

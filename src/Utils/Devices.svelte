@@ -1,10 +1,9 @@
 <script>
 import Communication from "./Communication.svelte";
-import { activeDevice, devices, message } from "../../stores/stores"
+import { activeDevice, devices, message, endpoint } from "../../stores/stores";
 import { onMount } from "svelte";
 
 let Com;
-let endpoint;
 let nopRoute;
 let success;
 let collapseContent;
@@ -15,12 +14,11 @@ $: searching = false;
 $: deviceButtonDisabled = searching || $devices.includes(newDevice);
 $: deviceButtonMessage = "Find";
 
-
 function handleClickDevice() {
     (async () => {
         searching = true;
         deviceButtonMessage = "Searching ...";
-        return await Com.hitEndpoint(endpoint, nopRoute, add_device_command);
+        return await Com.hitEndpoint($endpoint, nopRoute, add_device_command);
     })().then((result) => {
         searching = false;
         if (result.hasOwnProperty('Failure')){
@@ -42,7 +40,7 @@ function handleClickRemove(idx) {
     return () => {
         (async () => {
             remove_device_command = `{ "RemoveFabric": { "fabric_name": "${$devices[idx]}" } }`
-            return await Com.hitEndpoint(endpoint, nopRoute, remove_device_command);
+            return await Com.hitEndpoint($endpoint, nopRoute, remove_device_command);
         })().then(() => {
             if(idx <= $activeDevice && $activeDevice != 0) {
             activeDevice.update(n => n - 1)
@@ -74,12 +72,12 @@ function handleCollapse() {
 }
 </script>
 
-<Communication bind:this={Com} bind:endpoint bind:nopRoute bind:success/>
+<Communication bind:this={Com} bind:nopRoute bind:success/>
 
 <button class="collapsible" on:click={handleCollapse}><h2><img id="device_icon" src="images/device_icon.png" alt="Device Icon"/> Addressable Devices</h2></button>
 <div class="content" bind:this={collapseContent}>
 
-<label for="device">Device </label> <input bind:value={newDevice} />
+<label for="device">Device </label> <input bind:value={newDevice}/>
 <button on:click={handleClickDevice} disabled={deviceButtonDisabled}> {deviceButtonMessage} </button>
 
 {#if $devices.length > 0 }

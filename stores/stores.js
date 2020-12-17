@@ -6,6 +6,11 @@ export const command = writable(0x02); //Sets timing options (alloff, single pul
 export const cmd_op = writable(0x01);
 export const act_cnt8 = writable(5);
 
+export const hostname = writable("localhost");
+export const port = writable("8088");
+export const route = writable("api_index");
+export const endpoint = derived([hostname, port, route], ([$hostname, $port, $route]) => `http://${$hostname}:${$port}/${$route}`);
+
 export const activeDevice = writable(0);
 export const devices = writable([]);
 
