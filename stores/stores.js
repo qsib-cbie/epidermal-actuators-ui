@@ -26,7 +26,6 @@ export const block160_191 = writable([0,0,0,0]);
 export const block192_223 = writable([0,0,0,0]);
 export const block224_255 = writable([0,0,0,0]);
 
-
 export const t_pulse = writable(1000);
 export const t_pause = writable(500);
 export const ton_high = writable(100);
@@ -34,8 +33,39 @@ export const tperiod_high = writable(200);
 export const ton_low = writable(1000);
 export const tperiod_low = writable(2000);
 
-export const act_command = derived([command, act_cnt8, cmd_op, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, single_pulse_block, hf_block, lf_block],
-  ([$command, $act_cnt8, $cmd_op, $devices, $activeDevice, $block0_31, $block32_63, $block64_95, $block96_127, $single_pulse_block, $hf_block, $lf_block]) => `{ "ActuatorsCommand": {
+export const act_command = derived([
+    command, act_cnt8, cmd_op, devices, activeDevice, 
+    block224_255,
+    block192_223,
+    block160_191,
+    block128_159,
+    block96_127,
+    block64_95,
+    block32_63,
+    block0_31,
+    t_pulse,
+    t_pause,
+    ton_high,
+    tperiod_high,
+    ton_low,
+    tperiod_low,
+  ],
+  ([$command, $act_cnt8, $cmd_op, $devices, $activeDevice, 
+      $block224_255,
+      $block192_223,
+      $block160_191,
+      $block128_159,
+      $block96_127,
+      $block64_95,
+      $block32_63,
+      $block0_31,
+      $t_pulse,
+      $t_pause,
+      $ton_high,
+      $tperiod_high,
+      $ton_low,
+      $tperiod_low
+    ]) => `{ "ActuatorsCommand": {
     "fabric_name": "${$devices[$activeDevice]}",
     "op_mode_block": {"act_cnt8":${$act_cnt8}, "cmd_op":${$cmd_op}, "command":${$command}},
     "actuator_mode_blocks": {
