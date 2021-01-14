@@ -1,5 +1,10 @@
 <script>
-import { block0_31, block32_63, block64_95, block96_127, act_command, message, command, preset_display, is_success, single_pulse_pause, single_pulse_duration, hfPeriod, hfDutyCycle, lfPeriod, lfDutyCycle, endpoint } from "../../stores/stores.js";
+import {
+    block0_31, block32_63, block64_95, block96_127,
+    block128_159, block160_191, block192_223, block224_255,
+    act_command, message, command, preset_display, is_success, endpoint,
+    t_pulse, t_pause, ton_high, tperiod_high, ton_low, tperiod_low
+} from "../../stores/stores.js";
 import Communication from "./Communication.svelte";
 import Moveable from "svelte-moveable";
 import { onMount } from "svelte";
@@ -175,7 +180,7 @@ const hexagons = [
 const testingHexagons = [
     {id: 0, row: 0, col: 1},
     {id: 1, row: 0, col: 3},
-    {id: 4, row: 1, col: 0},    
+    {id: 4, row: 1, col: 0},
     {id: 5, row: 1, col: 2},
     {id: 6, row: 1, col: 4},
     {id: 10, row: 2, col: 1},
@@ -185,7 +190,7 @@ const testingHexagons = [
 const stichableHexagons = [
     {id: 0, row: 0, col: 1},
     {id: 1, row: 0, col: 3},
-    {id: 2, row: 1, col: 0},    
+    {id: 2, row: 1, col: 0},
     {id: 3, row: 1, col: 2},
     {id: 4, row: 1, col: 4},
     {id: 5, row: 2, col: 1},
@@ -774,7 +779,7 @@ export function sendCommandBlocks() {
         return await Com.hitEndpoint($endpoint, nopRoute, $act_command);
     })().then(result => {
         if (result.hasOwnProperty('Failure')) {
-            $message = result['Failure']['message']; 
+            $message = result['Failure']['message'];
             $is_success = false;
         } else {
             $message = "Sent Command Successfully";
@@ -816,7 +821,7 @@ function findActiveHexagons(e) {
     if (JSON.stringify(hexCache) != JSON.stringify(activeHexagon)) {
         if (activeHexagon.length != 0) {
             sendCommandBlocks();
-        } 
+        }
     }
     hexCache = activeHexagon;
 }
@@ -828,7 +833,7 @@ export async function AllOff() {
     $command = temp_OP;
 }
 
-function handleTouchStart(e) { 
+function handleTouchStart(e) {
     if (!is_overlay) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
@@ -853,10 +858,10 @@ function handleTouchStart(e) {
         Ystart = e.offsetY;
     }
 
-    if(!isPreset && arraySize != "small") {
+    if(!isPreset) {
         findActiveHexagons(e);
         //Interval needs to be based on timing settings so it doesn't overwrite the previous command
-        resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause);
+    //     resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause);
     }
     }
 }
@@ -869,18 +874,18 @@ function handleTouchMove(e) {
         return;
     }
     tpCache = [];
-    try{ 
+    try{
         for (let ttouch of e.targetTouches) {
             tpCache = [...tpCache, ttouch];
         }
     } catch{tpCache = [0];}
     clearInterval(resendCommand);
-    if(!isPreset && arraySize != "small") {
+    if(!isPreset) {
         findActiveHexagons(e);
-        if (pendingTimeout) { 
+        if (pendingTimeout) {
             clearTimeout(pendingTimeout);
         }
-        pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause)}, 50);
+        // pendingTimeout = setTimeout(() => {resendCommand = setInterval(() => {if($command >= 3){hexCache = [];} findActiveHexagons(e);}, $single_pulse_duration+$single_pulse_pause)}, 50);
     }
     if (isTouch) {
         Xend = e.targetTouches[0].clientX - boundRect.left;
@@ -896,7 +901,7 @@ function handleTouchEnd(e) {
     if (!is_overlay) {
     if(e.stopPropagation) e.stopPropagation();
     if(e.preventDefault) e.preventDefault();
-    if ($command > 3 ) hexCache = [];
+    if ($command > 3) hexCache = [];
     try{
         tpCache = [...tpCache.filter(tp => tp.identifier != e.changedTouches[0].identifier)];
         if (tpCache.length == 0) throw "No more Touches";
@@ -926,7 +931,7 @@ function handleTouchEnd(e) {
                     console.log('TB');
                     $command = 0x39;//LR
                     display_preset("sweep-TB","hf");
-            } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
+            } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
                     console.log('BT');
                     $command = 0x38;//RL
                     display_preset("sweep-BT","hf");
@@ -964,13 +969,13 @@ async function display_preset(name,timing) {
             for (let a of item.array) {
                 activeHexagon = a;
                 if (timing === "single") {
-                    await sleep($single_pulse_duration);
+                    await sleep($t_pulse);
                     activeHexagon = [];
-                    await sleep($single_pulse_pause);
+                    await sleep($t_pause);
                 } else if(timing === "hf"){
-                    await sleep($hfPeriod * ($hfDutyCycle/100));
+                    await sleep($ton_high);
                     activeHexagon = [];
-                    await sleep($lfPeriod * ($lfDutyCycle/100));
+                    await sleep($tperiod_high - $ton_high);
                 }
             }
         }
@@ -996,8 +1001,8 @@ const sleep = (milliseconds) => {
                 {/each}
             </select>
             <br/>
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
+            <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>
+            <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>
             <input style="width: 50%" bind:value={rotation}/> &deg
             <br/>
             <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
@@ -1012,7 +1017,7 @@ const sleep = (milliseconds) => {
             preserveAspectRatio="xMidYMid meet"
             on:mousedown={e => handleTouchStart(e)}
             on:mousemove={e => handleTouchMove(e)}
-            on:mouseup={e => handleTouchEnd(e)}    
+            on:mouseup={e => handleTouchEnd(e)}
             on:touchstart={e => handleTouchStart(e)}
             on:touchmove={e => handleTouchMove(e)}
             on:touchend={e => handleTouchEnd(e)}
