@@ -21,17 +21,18 @@ export const block0_31 = writable([0,0,0,0]);
 export const block32_63 = writable([0,0,0,0]);
 export const block64_95 = writable([0,0,0,0]);
 export const block96_127 = writable([0,0,0,0]);
+export const block128_159 = writable([0,0,0,0]);
+export const block160_191 = writable([0,0,0,0]);
+export const block192_223 = writable([0,0,0,0]);
+export const block224_255 = writable([0,0,0,0]);
 
-export const lfPeriod = writable(2000);
-export const lfDutyCycle = writable(50);
-export const hfPeriod = writable(200);
-export const hfDutyCycle = writable(50);
-export const single_pulse_duration = writable(1000);
-export const single_pulse_pause = writable(250);
 
-export const single_pulse_block = writable([0, 0, 0]);
-export const hf_block = writable([0, 0, 0]);
-export const lf_block = writable([0, 0, 0]);
+export const t_pulse = writable(1000);
+export const t_pause = writable(500);
+export const ton_high = writable(100);
+export const tperiod_high = writable(200);
+export const ton_low = writable(1000);
+export const tperiod_low = writable(2000);
 
 export const act_command = derived([command, act_cnt8, cmd_op, devices, activeDevice, block0_31, block32_63, block64_95, block96_127, single_pulse_block, hf_block, lf_block],
   ([$command, $act_cnt8, $cmd_op, $devices, $activeDevice, $block0_31, $block32_63, $block64_95, $block96_127, $single_pulse_block, $hf_block, $lf_block]) => `{ "ActuatorsCommand": {
@@ -41,12 +42,22 @@ export const act_command = derived([command, act_cnt8, cmd_op, devices, activeDe
       "block0_31":{"b0": ${$block0_31[0]}, "b1": ${$block0_31[1]}, "b2": ${$block0_31[2]}, "b3": ${$block0_31[3]}},
       "block32_63":{"b0": ${$block32_63[0]}, "b1": ${$block32_63[1]}, "b2": ${$block32_63[2]}, "b3": ${$block32_63[3]}},
       "block64_95":{"b0": ${$block64_95[0]}, "b1": ${$block64_95[1]}, "b2": ${$block64_95[2]}, "b3": ${$block64_95[3]}},
-      "block96_127":{"b0": ${$block96_127[0]}, "b1": ${$block96_127[1]}, "b2": ${$block96_127[2]}, "b3": ${$block96_127[3]}}},
-    "timer_mode_blocks": {
-      "single_pulse_block":{"b0":${$single_pulse_block[0]}, "b1":${$single_pulse_block[1]}, "b2":${$single_pulse_block[2]}},
-      "hf_block":{"b0":${$hf_block[0]}, "b1":${$hf_block[1]}, "b2":${$hf_block[2]}},
-      "lf_block":{"b0":${$lf_block[0]}, "b1":${$lf_block[1]}, "b2":${$lf_block[2]}}
-    } } }`);
+      "block96_127":{"b0": ${$block96_127[0]}, "b1": ${$block96_127[1]}, "b2": ${$block96_127[2]}, "b3": ${$block96_127[3]}},
+      "block128_159":{"b0": ${$block128_159[0]}, "b1": ${$block128_159[1]}, "b2": ${$block128_159[2]}, "b3": ${$block128_159[3]}},
+      "block160_191":{"b0": ${$block160_191[0]}, "b1": ${$block160_191[1]}, "b2": ${$block160_191[2]}, "b3": ${$block160_191[3]}},
+      "block192_223":{"b0": ${$block192_223[0]}, "b1": ${$block192_223[1]}, "b2": ${$block192_223[2]}, "b3": ${$block192_223[3]}},
+      "block224_255":{"b0": ${$block224_255[0]}, "b1": ${$block224_255[1]}, "b2": ${$block224_255[2]}, "b3": ${$block224_255[3]}}
+    },
+    "timer_mode_block": {
+      "t_pulse": ${$t_pulse},
+      "t_pause": ${$t_pause},
+      "ton_high": ${$ton_high},
+      "tperiod_high": ${$tperiod_high},
+      "ton_low": ${$ton_low},
+      "tperiod_low": ${$tperiod_low}
+    } 
+  } 
+}`);
 
 
 export const preset_display = readable([
