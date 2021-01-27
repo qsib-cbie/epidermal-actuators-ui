@@ -913,47 +913,65 @@ function handleTouchEnd(e) {
 
     if (isPreset) {
         let temp = $command;
-        if (presetName == "sweep") {
-            if (deltaX > 0 && Math.abs(deltaY) < 75 ){
-                    console.log('LR');
-                    $command = 0x3a;//LR
-                    display_preset("sweep-LR","hf");
-            } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
-                    console.log('RL');
-                    $command = 0x3b;//RL
-                    display_preset("sweep-RL","hf");
-            } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
-                    console.log('TB');
-                    $command = 0x39;//LR
-                    display_preset("sweep-TB","hf");
-            } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
-                    console.log('BT');
-                    $command = 0x38;//RL
-                    display_preset("sweep-BT","hf");
-            } else if (deltaX > 0 && deltaY < 0) {
-                    console.log('+45BT');
-                    $command = 0x3f;
-                    display_preset("sweep+45BT","hf");
-            } else if (deltaX < 0 && deltaY > 0) {
-                    console.log('+45TB');
-                    $command = 0x3e;//+45tb
-                    display_preset("sweep+45TB","hf");
-            } else if (deltaX < 0 && deltaY < 0) {
-                    console.log('-45BT');
-                    $command = 0x3c;//-45bt
-                    display_preset("sweep-45BT","hf");
-            } else if (deltaX > 0 && deltaY > 0) {
-                    console.log('-45TB');
-                    $command = 0x3d;
-                    display_preset("sweep-45TB","hf");
-            }
-        } else if (presetName == "FlashAll") {
-            $command = 0x32;
-            display_preset("flashall","single");
+        switch (presetName) {
+            case "sweep":
+                if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                        console.log('LR');
+                        $command = 0x3a;//LR
+                        display_preset("sweep-LR","hf");
+                } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                        console.log('RL');
+                        $command = 0x3b;//RL
+                        display_preset("sweep-RL","hf");
+                } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                        console.log('TB');
+                        $command = 0x39;//LR
+                        display_preset("sweep-TB","hf");
+                } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
+                        console.log('BT');
+                        $command = 0x38;//RL
+                        display_preset("sweep-BT","hf");
+                } else if (deltaX > 0 && deltaY < 0) {
+                        console.log('+45BT');
+                        $command = 0x3f;
+                        display_preset("sweep+45BT","hf");
+                } else if (deltaX < 0 && deltaY > 0) {
+                        console.log('+45TB');
+                        $command = 0x3e;//+45tb
+                        display_preset("sweep+45TB","hf");
+                } else if (deltaX < 0 && deltaY < 0) {
+                        console.log('-45BT');
+                        $command = 0x3c;//-45bt
+                        display_preset("sweep-45BT","hf");
+                } else if (deltaX > 0 && deltaY > 0) {
+                        console.log('-45TB');
+                        $command = 0x3d;
+                        display_preset("sweep-45TB","hf");
+                }
+                break;
+            case "Flashall":
+                $command = 0x32;
+                display_preset("flashall","single");
+                break;
+            case "spiral":
+                // $command = 0x32;
+                break;
+            case "2intensity":
+                // $command = 0x32;
+                break;
+            case "arrows":
+                if (arrayType == "hand") {
+                    display_preset("hand-arrow-RL", "single");
+                }
+                // $command = 0x32;
+                break;
+            case "ABC":
+                // $command = 0x32;
+                break;
         }
         sendCommandBlocks(); //explosion /implosion 40/41
-        $command = temp;
-    }
+        $command = temp;    
+        }
     }
 }
 
@@ -1029,9 +1047,9 @@ const sleep = (milliseconds) => {
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        <!-- {#if (!arraySize || arraysize <= 1)}
-                            <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                        {/if} -->
+                        <!-- {#if (!arraySize)} -->
+                            <!-- <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text> -->
+                        <!-- {/if} -->
                     </g>
             {/each}
         </svg>
