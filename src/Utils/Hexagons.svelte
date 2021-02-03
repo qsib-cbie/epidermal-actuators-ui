@@ -310,8 +310,8 @@ const back_hexagons = [
   { id: 58, row:6, col:11},
   { id: 59, row:6, col:13},
   { id: 60, row:6, col:9},
-  { id: 61, row:7, col:12},
-  { id: 62, row:7, col:10},
+  { id: 61, row:7, col:10},
+  { id: 62, row:7, col:12},
 
   { id: 63, row:7, col:16},
   { id: 64, row:7, col:14},
@@ -954,18 +954,111 @@ function handleTouchEnd(e) {
                 display_preset("flashall","single");
                 break;
             case "spiral":
-                // $command = 0x32;
-                break;
-            case "2intensity":
-                // $command = 0x32;
-                break;
-            case "arrows":
-                if (arrayType == "hand") {
-                    display_preset("hand-arrow-RL", "single");
+                switch (arrayType) {
+                    case "chest":
+                        break;
+                    case "":
+                        break;   
+                    case "back":
+                        break;
+                    case "thigh":
+                        break;
+                    case "hand":
+                        break;
+                    case "shoulder":
+                        break;
                 }
                 // $command = 0x32;
                 break;
+            case "2intensity"://cant be synced without feedback from device.
+                // $command = 0x32;
+            case "arrows":
+                switch (arrayType) {
+                    case "back":
+                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                            // $command = 0x32;
+                            display_preset("back-arrow-LR", "single");
+                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                            // $command = 0x32;
+                            display_preset("back-arrow-RL", "single");
+                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("back-arrow-TB", "single");
+                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("back-arrow-BT", "single");
+                        }
+                        break;
+                    case "":
+                        break;   
+                    case "chest":
+                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                            // $command = 0x32;
+                            display_preset("chest-arrow-LR", "single");
+                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                            // $command = 0x32;
+                            display_preset("chest-arrow-RL", "single");
+                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("chest-arrow-TB", "single");
+                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("chest-arrow-BT", "single");
+                        }
+                        break;
+                    case "thigh":
+                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                            // $command = 0x32;
+                            display_preset("thigh-arrow-LR", "single");
+                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                            // $command = 0x32;
+                            display_preset("thigh-arrow-RL", "single");
+                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("thigh-arrow-TB", "single");
+                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
+                            // $command = 0x32;
+                            display_preset("thigh-arrow-BT", "single");
+                        }
+                        break;
+                    case "hand":
+                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                            console.log('LR');
+                            // $command = 0x32;
+                            display_preset("hand-arrow-LR", "single");
+                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                            console.log('RL');
+                            // $command = 0x32;
+                            display_preset("hand-arrow-RL", "single");
+                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                            console.log('TB');
+                            // $command = 0x32;
+                            display_preset("hand-arrow-TB", "single");
+                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
+                            console.log('BT');
+                            // $command = 0x32;
+                            display_preset("hand-arrow-BT", "single");
+                        }
+                        break;
+                    case "shoulder":
+                        break;
+                }
+                break;
             case "ABC":
+                switch (arrayType) {
+                    case "chest":
+                        break;
+                    case "":
+                        break;   
+                    case "back":
+                        break;
+                    case "thigh":
+                        break;
+                    case "hand":
+                        break;
+                    case "shoulder":
+                        break;
+                }
                 // $command = 0x32;
                 break;
         }
@@ -1048,7 +1141,7 @@ const sleep = (milliseconds) => {
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
                         <!-- {#if (!arraySize)} -->
-                            <!-- <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text> -->
+                            <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
                         <!-- {/if} -->
                     </g>
             {/each}
