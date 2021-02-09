@@ -85,8 +85,8 @@ export const act_command = derived([
       "tperiod_high": ${$tperiod_high},
       "ton_low": ${$ton_low},
       "tperiod_low": ${$tperiod_low}
-    } 
-  } 
+    }
+  }
 }`);
 
 

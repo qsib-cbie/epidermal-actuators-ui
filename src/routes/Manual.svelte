@@ -107,7 +107,7 @@ $: {
     if(singlePulse) {
         $command = 0x04;
     } else {
-        $command = 0x02;
+        $command = 0x01;
     }
    }
 
@@ -179,7 +179,7 @@ function handleSetTiming(Hex) {
             <label for="single_pulse"> Pause After Pulse Duration: {$t_pause} ms </label> <input type="range" bind:value={$t_pause} min={0} max={10000}/>
 
             <label for="hfperiod">High Frequency Period: {$tperiod_high} ms</label> <input type="range" bind:value={$tperiod_high} min={1} max={1000}/>
-            <label for="hfdutycycle">High Frequency Duty Cycle: {$ton_high} ({(100 * $ton_high / $tperiod_high).toFixed(2)}%)</label> <input type="range" bind:value={$ton_high} min={0} max={$tperiod_high}/>
+            <label for="hfdutycycle">High Frequency Duty Cycle: {$ton_high} ms ({(100 * $ton_high / $tperiod_high).toFixed(2)}%)</label> <input type="range" bind:value={$ton_high} min={0} max={$tperiod_high}/>
 
             <label for="lfperiod">Low Frequency Period: {$tperiod_low} ms</label> <input type="range" bind:value={$tperiod_low} min={1} max={10000}/>
             <label for="lfdutycycle">Low Frequency Duty Cycle: {$ton_low} ms ({(100 * $ton_low / $tperiod_low).toFixed(2)}%)</label> <input type="range" bind:value={$ton_low} min={0} max={$tperiod_low}/>

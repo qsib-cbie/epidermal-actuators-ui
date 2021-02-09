@@ -105,7 +105,7 @@ onMount(() => {
 function getBytesForActuator(actuators) {
     /*Passed array of active actuators, Returns Array of 16 with decimal representation of binary location of actuator
     (EX: 3rd actuator => 0b00001000) => 8 in first blockByte */
-    let blockBytes = [...Array(16).keys()].map(i => 0);
+    let blockBytes = [...Array(32).keys()].map(i => 0);
     for (let actuator of actuators) {
         const block  = Math.floor((actuator) / 32);
         const blockByte = Math.floor(((actuator) % 32) / 8);
@@ -115,11 +115,18 @@ function getBytesForActuator(actuators) {
 }
 
 function buildCommandBlocks(active) {
-    const [b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3] = getBytesForActuator(active);
+    const [
+        b0_0, b0_1, b0_2, b0_3, b1_0, b1_1, b1_2, b1_3, b2_0, b2_1, b2_2, b2_3, b3_0, b3_1, b3_2, b3_3,
+        b4_0, b4_1, b4_2, b4_3, b5_0, b5_1, b5_2, b5_3, b6_0, b6_1, b6_2, b6_3, b7_0, b7_1, b7_2, b7_3
+    ] = getBytesForActuator(active);
     block0_31.set([b0_0, b0_1, b0_2, b0_3]);
     block32_63.set([b1_0, b1_1, b1_2, b1_3]);
     block64_95.set([b2_0, b2_1, b2_2, b2_3]);
     block96_127.set([b3_0, b3_1, b3_2, b3_3]);
+    block128_159.set([b4_0, b4_1, b4_2, b4_3]);
+    block160_191.set([b5_0, b5_1, b5_2, b5_3]);
+    block192_223.set([b6_0, b6_1, b6_2, b6_3]);
+    block224_255.set([b7_0, b7_1, b7_2, b7_3]);
 }
 
 
@@ -813,7 +820,7 @@ function findActiveHexagons(e) {
             const euclidianDistSquared = xDist * xDist + yDist * yDist;
             if(euclidianDistSquared < radiusSquared) {
                 activeHexagon = [...activeHexagon, drawableHexagons[i].id];
-                buildCommandBlocks(activeHexagon);
+                // buildCommandBlocks(activeHexagon);
             }
         }
     }
