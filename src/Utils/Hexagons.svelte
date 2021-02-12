@@ -310,8 +310,8 @@ const back_hexagons = [
   { id: 58, row:6, col:11},
   { id: 59, row:6, col:13},
   { id: 60, row:6, col:9},
-  { id: 61, row:7, col:12},
-  { id: 62, row:7, col:10},
+  { id: 61, row:7, col:10},
+  { id: 62, row:7, col:12},
 
   { id: 63, row:7, col:16},
   { id: 64, row:7, col:14},
@@ -764,7 +764,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = (activeHexagon.includes(id) ? "mediumseagreen" : "black");
+    const color = (activeHexagon.includes(id) ? "rebeccapurple" : "none");
 
     return {id, x, y, width, height, points: points.join(' '), color};
 });
@@ -918,55 +918,62 @@ function handleTouchEnd(e) {
                 if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                         console.log('LR');
                         $command = 0x3a;//LR
-                        display_preset("sweep-LR","hf");
+                        display_preset("sweep-LR","hf", true);
                 } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                         console.log('RL');
                         $command = 0x3b;//RL
-                        display_preset("sweep-RL","hf");
+                        display_preset("sweep-RL","hf", true);
                 } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                         console.log('TB');
                         $command = 0x39;//LR
-                        display_preset("sweep-TB","hf");
+                        display_preset("sweep-TB","hf", true);
                 } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                         console.log('BT');
                         $command = 0x38;//RL
-                        display_preset("sweep-BT","hf");
+                        display_preset("sweep-BT","hf", true);
                 } else if (deltaX > 0 && deltaY < 0) {
                         console.log('+45BT');
                         $command = 0x3f;
-                        display_preset("sweep+45BT","hf");
+                        display_preset("sweep+45BT","hf", true);
                 } else if (deltaX < 0 && deltaY > 0) {
                         console.log('+45TB');
                         $command = 0x3e;//+45tb
-                        display_preset("sweep+45TB","hf");
+                        display_preset("sweep+45TB","hf", true);
                 } else if (deltaX < 0 && deltaY < 0) {
                         console.log('-45BT');
                         $command = 0x3c;//-45bt
-                        display_preset("sweep-45BT","hf");
+                        display_preset("sweep-45BT","hf", true);
                 } else if (deltaX > 0 && deltaY > 0) {
                         console.log('-45TB');
                         $command = 0x3d;
-                        display_preset("sweep-45TB","hf");
+                        display_preset("sweep-45TB","hf", true);
                 }
                 break;
             case "Flashall":
                 $command = 0x32;
-                display_preset("flashall","single");
+                display_preset("flashall", "single", true);
                 break;
             case "spiral":
-                // $command = 0x32;
+                display_preset(arrayType+"-spiral", "single", false);
                 break;
-            case "2intensity":
-                // $command = 0x32;
+            case "2intensity"://Can only be run from the store, firmware won't be able to sync
+                let l = drawableHexagons.length;
+                get_random(l, "single");    
+                activeHexagon = [];        
                 break;
             case "arrows":
-                if (arrayType == "hand") {
-                    display_preset("hand-arrow-RL", "single");
+                if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                    display_preset(arrayType+"-arrow-LR", "single", false);
+                } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                    display_preset(arrayType+"-arrow-RL", "single", false);
+                } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                    display_preset(arrayType+"-arrow-TB", "single", false);
+                } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
+                    display_preset(arrayType+"-arrow-BT", "single", false);
                 }
-                // $command = 0x32;
                 break;
-            case "ABC":
-                // $command = 0x32;
+            case "ABCs":
+                display_preset(arrayType+"-ABCS", "single", false);
                 break;
         }
         sendCommandBlocks(); //explosion /implosion 40/41
@@ -975,12 +982,15 @@ function handleTouchEnd(e) {
     }
 }
 
-async function display_preset(name,timing) {
-    // await sleep(50);
+async function display_preset(name, timing, in_firmware) {
     for (let item of $preset_display) {
         if (name == item.name) {
             for (let a of item.array) {
                 activeHexagon = a;
+                if (!in_firmware) {
+                    buildCommandBlocks(activeHexagon);
+                    sendCommandBlocks();
+                }
                 if (timing === "single") {
                     await sleep($single_pulse_duration);
                     activeHexagon = [];
@@ -996,6 +1006,26 @@ async function display_preset(name,timing) {
     activeHexagon = [];
 }
 
+async function get_random(l, timing) {
+    for(var i = 0; i<4;i++) {
+        let a = [];
+        a.push(Math.floor(Math.random() * (l +1)));
+        a.push(Math.floor(Math.random() * (l +1)));
+        activeHexagon = a;
+        buildCommandBlocks(activeHexagon);
+        sendCommandBlocks();
+        if (timing === "single") {
+            await sleep($single_pulse_duration);
+            activeHexagon = [];
+            await sleep($single_pulse_pause);
+        } else if(timing === "hf"){
+            await sleep($hfPeriod * ($hfDutyCycle/100));
+            activeHexagon = [];
+            await sleep($lfPeriod * ($lfDutyCycle/100));
+        }
+    }
+}
+
 const sleep = (milliseconds) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
@@ -1003,25 +1033,6 @@ const sleep = (milliseconds) => {
 </script>
 
 <Communication bind:this={Com} bind:nopRoute bind:success/>
-
-    <!-- {#if arraySize == "normal"}
-        <div class="col-5">
-            <select bind:value={arrayType}>
-                {#each hexagonTypes as type}
-                    <option value={type.id}>
-                        {type.text}
-                    </option>
-                {/each}
-            </select>
-            <br/>
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
-            <input style="width: 50%" bind:value={rotation}/> &deg
-            <br/>
-            <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
-        </div>
-    {/if} -->
-
     <div class="hexagons">
         <svg version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
@@ -1041,15 +1052,12 @@ const sleep = (milliseconds) => {
                         id={`hex-${hexagon.id}`}
                         key={`hex-${hexagon.x}-${hexagon.y}`}
                         class="activatable"
-                        fill="none"
-                        stroke={hexagon.color}
+                        fill={hexagon.color} 
+                        stroke="mediumorchid"
                         stroke-width={strokeWidth}
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        <!-- {#if (!arraySize)} -->
-                            <!-- <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text> -->
-                        <!-- {/if} -->
                     </g>
             {/each}
         </svg>
@@ -1076,9 +1084,7 @@ const sleep = (milliseconds) => {
         width: 100%;
         height: 100%;
         text-align: center;
-
         margin: 0em auto;
-        /* margin-top: 3em; */
         padding: 0em;
     }
     svg {
