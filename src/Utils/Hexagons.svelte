@@ -764,7 +764,7 @@ $: drawableHexagons = hexagonsLayout.map(({id, row, col}) => {
     ];
     const x = (globalPadding / 2) + (col/2 + .5) * width + Math.max((col / 2) * horizontalSpacing, 0);
     const y = (globalPadding / 2) + ((row/2) * 1.5 + .5) * height + Math.max((row / 2) * verticalSpacing, 0);
-    const color = (activeHexagon.includes(id) ? "mediumseagreen" : "black");
+    const color = (activeHexagon.includes(id) ? "rebeccapurple" : "none");
 
     return {id, x, y, width, height, points: points.join(' '), color};
 });
@@ -1033,25 +1033,6 @@ const sleep = (milliseconds) => {
 </script>
 
 <Communication bind:this={Com} bind:nopRoute bind:success/>
-
-    <!-- {#if arraySize == "normal"}
-        <div class="col-5">
-            <select bind:value={arrayType}>
-                {#each hexagonTypes as type}
-                    <option value={type.id}>
-                        {type.text}
-                    </option>
-                {/each}
-            </select>
-            <br/>
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: -(rotation)}, true)}>Rotate {rotation}&#730 &#8634</button>    
-            <button on:click={() => moveable.request("rotatable",{deltaRotate: +(rotation)}, true)}>Rotate {rotation}&#730 &#8635</button>    
-            <input style="width: 50%" bind:value={rotation}/> &deg
-            <br/>
-            <button on:click={() => moveable.request("rotatable",{rotate: initialRotation}, true)}>Reset</button>
-        </div>
-    {/if} -->
-
     <div class="hexagons">
         <svg version="1.0" xmlns="http://www.w3.org/2000/svg" bind:this={target} style={setStyle}
             width={`${viewBox.x}px`}
@@ -1071,15 +1052,12 @@ const sleep = (milliseconds) => {
                         id={`hex-${hexagon.id}`}
                         key={`hex-${hexagon.x}-${hexagon.y}`}
                         class="activatable"
-                        fill="none"
-                        stroke={hexagon.color}
+                        fill={hexagon.color} 
+                        stroke="mediumorchid"
                         stroke-width={strokeWidth}
                         strokeLinejoin="miter"
                         transform={`translate(${hexagon.x - (hexagon.width / 2)} ${hexagon.y - (hexagon.height / 2)})`}
                         points={hexagon.points} />
-                        <!-- {#if (!arraySize)} -->
-                            <text id={`text-${hexagon.id}`} x={hexagon.x - 6} y={hexagon.y}>{hexagon.id}</text>
-                        <!-- {/if} -->
                     </g>
             {/each}
         </svg>
@@ -1106,9 +1084,7 @@ const sleep = (milliseconds) => {
         width: 100%;
         height: 100%;
         text-align: center;
-
         margin: 0em auto;
-        /* margin-top: 3em; */
         padding: 0em;
     }
     svg {

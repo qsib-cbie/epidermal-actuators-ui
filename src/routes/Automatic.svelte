@@ -26,17 +26,16 @@ let abc_img = "images/abc_icon.png";
 
 let location_options = [{id: 0, hexType:"back", rotation: 20, size: null, top: 50, left: 48, style: "background-image:url("+back_img+"); background-position: 50% 80%; background-size: 220% 200%;"},
                         {id: 1, hexType:"", rotation: 0, size: null, top: 40, left: 60, style: "background-image:url("+upper_arm_img+"); background-size: 200% 200%;"},
-                        {id: 2, hexType:"chest", rotation: 180, size: 1.2, top: 60, left: 50, style: "background-image:url("+chest_img+"); background-size: 200% 200%;"},
-                        {id: 3, hexType:"thigh", rotation: 0, size: null, top: 37, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%; background-size: 200% 200%;"},
+                        {id: 2, hexType:"chest", rotation: 180, size: 1.2, top: 50, left: 50, style: "background-image:url("+chest_img+"); background-size: 200% 200%;"},
+                        {id: 3, hexType:"thigh", rotation: 0, size: null, top: 43, left: 50, style: "background-image:url("+thigh_img+"); background-position: 10% 10%; background-size: 200% 200%;"},
                         {id: 4, hexType:"hand", rotation: 30, size: .8, top: 30, left: 50, style: "background-image:url("+hand_img+"); background-position: 50% 30%; background-size: 200% 200%;"},
-                        {id: 5, hexType:"shoulder", rotation: 30, size: 1.2, top: 50, left: 50, style: "background-image:url("+shoulder_img+"); background-size: 200% 200%;"},];
+                        {id: 5, hexType:"shoulder", rotation: 30, size: 1.3, top: 50, left: 50, style: "background-image:url("+shoulder_img+"); background-size: 200% 200%;"},];
                         
                                                 
 $: main_obj = location_options[0];
 
 let preset_options = [{id:"spiral", label:"", style:"background-image:url("+spiral_img+");"}, 
                       {id:"2intensity", label:"", style:"background-image:url("+int2_img+");"}, 
-                      {id:"sweep", label:"", style:"background-image:url("+sweep_img+");"},
                       {id:"arrows", label:"", style:"background-image:url("+arrow_img+");"}, 
                       {id:"ABCs", label:"", style:"background-image:url("+abc_img+");"}];
 
