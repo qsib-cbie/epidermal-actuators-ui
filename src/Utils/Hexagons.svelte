@@ -918,148 +918,62 @@ function handleTouchEnd(e) {
                 if (deltaX > 0 && Math.abs(deltaY) < 75 ){
                         console.log('LR');
                         $command = 0x3a;//LR
-                        display_preset("sweep-LR","hf");
+                        display_preset("sweep-LR","hf", true);
                 } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
                         console.log('RL');
                         $command = 0x3b;//RL
-                        display_preset("sweep-RL","hf");
+                        display_preset("sweep-RL","hf", true);
                 } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
                         console.log('TB');
                         $command = 0x39;//LR
-                        display_preset("sweep-TB","hf");
+                        display_preset("sweep-TB","hf", true);
                 } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
                         console.log('BT');
                         $command = 0x38;//RL
-                        display_preset("sweep-BT","hf");
+                        display_preset("sweep-BT","hf", true);
                 } else if (deltaX > 0 && deltaY < 0) {
                         console.log('+45BT');
                         $command = 0x3f;
-                        display_preset("sweep+45BT","hf");
+                        display_preset("sweep+45BT","hf", true);
                 } else if (deltaX < 0 && deltaY > 0) {
                         console.log('+45TB');
                         $command = 0x3e;//+45tb
-                        display_preset("sweep+45TB","hf");
+                        display_preset("sweep+45TB","hf", true);
                 } else if (deltaX < 0 && deltaY < 0) {
                         console.log('-45BT');
                         $command = 0x3c;//-45bt
-                        display_preset("sweep-45BT","hf");
+                        display_preset("sweep-45BT","hf", true);
                 } else if (deltaX > 0 && deltaY > 0) {
                         console.log('-45TB');
                         $command = 0x3d;
-                        display_preset("sweep-45TB","hf");
+                        display_preset("sweep-45TB","hf", true);
                 }
                 break;
             case "Flashall":
                 $command = 0x32;
-                display_preset("flashall","single");
+                display_preset("flashall", "single", true);
                 break;
             case "spiral":
-                switch (arrayType) {
-                    case "chest":
-                        break;
-                    case "":
-                        break;   
-                    case "back":
-                        break;
-                    case "thigh":
-                        break;
-                    case "hand":
-                        break;
-                    case "shoulder":
-                        break;
-                }
-                // $command = 0x32;
+                display_preset(arrayType+"-spiral", "single", false);
                 break;
-            case "2intensity"://cant be synced without feedback from device.
-                // $command = 0x32;
+            case "2intensity"://Can only be run from the store, firmware won't be able to sync
+                let l = drawableHexagons.length;
+                get_random(l, "single");    
+                activeHexagon = [];        
+                break;
             case "arrows":
-                switch (arrayType) {
-                    case "back":
-                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
-                            // $command = 0x32;
-                            display_preset("back-arrow-LR", "single");
-                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
-                            // $command = 0x32;
-                            display_preset("back-arrow-RL", "single");
-                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("back-arrow-TB", "single");
-                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("back-arrow-BT", "single");
-                        }
-                        break;
-                    case "":
-                        break;   
-                    case "chest":
-                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
-                            // $command = 0x32;
-                            display_preset("chest-arrow-LR", "single");
-                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
-                            // $command = 0x32;
-                            display_preset("chest-arrow-RL", "single");
-                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("chest-arrow-TB", "single");
-                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("chest-arrow-BT", "single");
-                        }
-                        break;
-                    case "thigh":
-                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
-                            // $command = 0x32;
-                            display_preset("thigh-arrow-LR", "single");
-                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
-                            // $command = 0x32;
-                            display_preset("thigh-arrow-RL", "single");
-                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("thigh-arrow-TB", "single");
-                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
-                            // $command = 0x32;
-                            display_preset("thigh-arrow-BT", "single");
-                        }
-                        break;
-                    case "hand":
-                        if (deltaX > 0 && Math.abs(deltaY) < 75 ){
-                            console.log('LR');
-                            // $command = 0x32;
-                            display_preset("hand-arrow-LR", "single");
-                        } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
-                            console.log('RL');
-                            // $command = 0x32;
-                            display_preset("hand-arrow-RL", "single");
-                        } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
-                            console.log('TB');
-                            // $command = 0x32;
-                            display_preset("hand-arrow-TB", "single");
-                        } else if (deltaY < 0 && Math.abs(deltaX) < 75) { 
-                            console.log('BT');
-                            // $command = 0x32;
-                            display_preset("hand-arrow-BT", "single");
-                        }
-                        break;
-                    case "shoulder":
-                        break;
+                if (deltaX > 0 && Math.abs(deltaY) < 75 ){
+                    display_preset(arrayType+"-arrow-LR", "single", false);
+                } else if (deltaX < 0 && Math.abs(deltaY) < 75) {
+                    display_preset(arrayType+"-arrow-RL", "single", false);
+                } else if (deltaY > 0 && Math.abs(deltaX) < 75) {
+                    display_preset(arrayType+"-arrow-TB", "single", false);
+                } else if (deltaY < 0 && Math.abs(deltaX) < 75) {
+                    display_preset(arrayType+"-arrow-BT", "single", false);
                 }
                 break;
-            case "ABC":
-                switch (arrayType) {
-                    case "chest":
-                        break;
-                    case "":
-                        break;   
-                    case "back":
-                        break;
-                    case "thigh":
-                        break;
-                    case "hand":
-                        break;
-                    case "shoulder":
-                        break;
-                }
-                // $command = 0x32;
+            case "ABCs":
+                display_preset(arrayType+"-ABCS", "single", false);
                 break;
         }
         sendCommandBlocks(); //explosion /implosion 40/41
@@ -1068,12 +982,15 @@ function handleTouchEnd(e) {
     }
 }
 
-async function display_preset(name,timing) {
-    // await sleep(50);
+async function display_preset(name, timing, in_firmware) {
     for (let item of $preset_display) {
         if (name == item.name) {
             for (let a of item.array) {
                 activeHexagon = a;
+                if (!in_firmware) {
+                    buildCommandBlocks(activeHexagon);
+                    sendCommandBlocks();
+                }
                 if (timing === "single") {
                     await sleep($single_pulse_duration);
                     activeHexagon = [];
@@ -1087,6 +1004,26 @@ async function display_preset(name,timing) {
         }
     }
     activeHexagon = [];
+}
+
+async function get_random(l, timing) {
+    for(var i = 0; i<4;i++) {
+        let a = [];
+        a.push(Math.floor(Math.random() * (l +1)));
+        a.push(Math.floor(Math.random() * (l +1)));
+        activeHexagon = a;
+        buildCommandBlocks(activeHexagon);
+        sendCommandBlocks();
+        if (timing === "single") {
+            await sleep($single_pulse_duration);
+            activeHexagon = [];
+            await sleep($single_pulse_pause);
+        } else if(timing === "hf"){
+            await sleep($hfPeriod * ($hfDutyCycle/100));
+            activeHexagon = [];
+            await sleep($lfPeriod * ($lfDutyCycle/100));
+        }
+    }
 }
 
 const sleep = (milliseconds) => {
